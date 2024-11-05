@@ -16,6 +16,7 @@
     "@copilotkit/react-core": "^1.51.3",
     "@copilotkit/react-ui": "^1.51.3",
     "@copilotkit/runtime": "^1.51.3",
+    "@copilotkitnext/react": "1.51.4",
     "@next/third-parties": "^15.5.5",
     "@phosphor-icons/react": "^2.1.7",
     "@radix-ui/react-alert-dialog": "^1.1.6",

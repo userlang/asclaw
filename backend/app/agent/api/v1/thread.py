@@ -170,7 +170,7 @@ async def chat_endpoint(
                     await stdio_client.connect()
                     await toolkit.register_mcp_client(stdio_client)
                     mcp_clients.append(stdio_client)
-                elif transport == 'see':
+                elif transport == 'sse':
                     sse_config = {
                         'transport': 'sse',
                         'url': config.get('url'),
@@ -179,7 +179,7 @@ async def chat_endpoint(
                         'sse_read_timeout': config.get('sse_read_timeout'),
                     }
                     stateful_client = HttpStatefulClient(
-                        name=mcp_name,
+                        name=name,
                         **sse_config,
                     )
 
@@ -195,7 +195,7 @@ async def chat_endpoint(
                         'sse_read_timeout': config.get('sse_read_timeout'),
                     }
                     stateful_client = HttpStatefulClient(
-                        name=mcp_name,
+                        name=name,
                         **http_config,
                     )
 
@@ -294,14 +294,15 @@ async def list_threads(
     )
 
 
-@router.get('/threads/{thread_id}')
+@router.get('/threads/{thread_id}', dependencies=[DependsJwtAuth])
 async def get_thread(
+    request: Request,
     thread_id: str,
     db_session: AsyncSession = Depends(get_db),
 ):
     """获取线程详情（含 title_generated，用于前端轮询）"""
     thread = await db_session.get(AgentChat, thread_id)
-    if not thread:
+    if not thread or thread.user_id != str(request.user.id):
         return response_base.success(
             data={
                 'thread_id': thread_id,
