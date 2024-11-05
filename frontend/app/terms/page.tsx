@@ -127,9 +127,9 @@ export default function TermsPage() {
               </div>
               <div>
                 <h3 className="text-lg font-medium text-foreground mb-2">
-                  4.3 开源组件
+                  4.3 第三方软件组件
                 </h3>
-                <p>本平台使用了开源软件组件。相关开源许可证信息可在我们的开源仓库中查阅。</p>
+                <p>本平台使用了第三方软件组件。相关许可信息可在相应组件的官方文档中查阅。</p>
               </div>
             </div>
           </section>

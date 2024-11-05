@@ -1,14 +1,13 @@
 [project]
-name = "wemcp"
+name = "asclaw"
 version = "0.0.1"
 description = """
-WeMCP Agent
+ASCLaw Agent
 """
 authors = [
     { name = "langjunnan" },
 ]
 readme = "README.md"
-license = { text = "MIT" }
 requires-python = ">=3.10"
 dependencies = [
     "aiofiles>=24.1.0",
@@ -108,4 +107,4 @@ pytest-asyncio = "^0.26.0"
 packages = ["."]
 
 [project.scripts]
-wemcp = "cli:main"
+asclaw = "cli:main"

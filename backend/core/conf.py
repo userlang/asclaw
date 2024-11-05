@@ -36,7 +36,7 @@ class Settings(BaseSettings):
 
     CELERY_BROKER_REDIS_DATABASE: int
     CELERY_TASK_MAX_RETRIES: int = 5
-    CELERY_REDIS_PREFIX: str = 'wemcp:celery'
+    CELERY_REDIS_PREFIX: str = 'asclaw:celery'
 
     # .env Token
     TOKEN_SECRET_KEY: str  # 密钥 secrets.token_urlsafe(32)
@@ -68,24 +68,21 @@ class Settings(BaseSettings):
     # 数据库
     DATABASE_ECHO: bool = False
     DATABASE_POOL_ECHO: bool = False
-    DATABASE_SCHEMA: str = 'wemcp'
-    DATABASE_CHAT_SCHEMA: str = 'wemcp_chat'
+    DATABASE_SCHEMA: str = 'asclaw'
+    DATABASE_CHAT_SCHEMA: str = 'asclaw_chat'
     DATABASE_CHARSET: str = 'utf8mb4'
-
-    # github
-    GITHUB_APP_ACCESS_TOKEN: str
 
     # Redis
     REDIS_TIMEOUT: int = 5
 
     # Grafana
     GRAFANA_METRICS_ENABLE: bool = False
-    GRAFANA_OTLP_GRPC_ENDPOINT: str = 'wemcp_alloy:4317'
+    GRAFANA_OTLP_GRPC_ENDPOINT: str = 'asclaw_alloy:4317'
 
     # Snowflake
     SNOWFLAKE_DATACENTER_ID: int | None = None
     SNOWFLAKE_WORKER_ID: int | None = None
-    SNOWFLAKE_REDIS_PREFIX: str = 'wemcp:snowflake'
+    SNOWFLAKE_REDIS_PREFIX: str = 'asclaw:snowflake'
     SNOWFLAKE_HEARTBEAT_INTERVAL_SECONDS: int = 30
     SNOWFLAKE_NODE_TTL_SECONDS: int = 60
 
@@ -93,10 +90,10 @@ class Settings(BaseSettings):
     TOKEN_ALGORITHM: str = 'HS256'
     TOKEN_EXPIRE_SECONDS: int = 60 * 60 * 24 * 3  # 3 天
     TOKEN_REFRESH_EXPIRE_SECONDS: int = 60 * 60 * 24 * 7  # 7 天
-    TOKEN_REDIS_PREFIX: str = 'wemcp:token'
-    TOKEN_EXTRA_INFO_REDIS_PREFIX: str = 'wemcp:token_extra_info'
-    TOKEN_ONLINE_REDIS_PREFIX: str = 'wemcp:token_online'
-    TOKEN_REFRESH_REDIS_PREFIX: str = 'wemcp:refresh_token'
+    TOKEN_REDIS_PREFIX: str = 'asclaw:token'
+    TOKEN_EXTRA_INFO_REDIS_PREFIX: str = 'asclaw:token_extra_info'
+    TOKEN_ONLINE_REDIS_PREFIX: str = 'asclaw:token_online'
+    TOKEN_REFRESH_REDIS_PREFIX: str = 'asclaw:refresh_token'
     TOKEN_REQUEST_PATH_EXCLUDE: list[str] = [  # JWT / RBAC 路由白名单
         f'{FASTAPI_API_V1_PATH}/auth/login',
         f'{FASTAPI_API_V1_PATH}/admin/auth/send-code',
@@ -107,11 +104,11 @@ class Settings(BaseSettings):
     ]
 
     # Email 验证码
-    EMAIL_CODE_REDIS_PREFIX: str = 'wemcp:email_code'
+    EMAIL_CODE_REDIS_PREFIX: str = 'asclaw:email_code'
     EMAIL_CODE_EXPIRE_SECONDS: int = 300  # 5 分钟
 
     # JWT
-    JWT_USER_REDIS_PREFIX: str = 'wemcp:user'
+    JWT_USER_REDIS_PREFIX: str = 'asclaw:user'
     JWT_USER_REDIS_EXPIRE_SECONDS: int = 60 * 60 * 24 * 7  # 7 天
 
     # RBAC
@@ -122,25 +119,21 @@ class Settings(BaseSettings):
     ]
 
     # Cookie
-    COOKIE_REFRESH_TOKEN_KEY: str = 'wemcp_refresh_token'
+    COOKIE_REFRESH_TOKEN_KEY: str = 'asclaw_refresh_token'
     COOKIE_REFRESH_TOKEN_EXPIRE_SECONDS: int = 60 * 60 * 24 * 7  # 7 天
 
     # OAuth2
-    # github oauth
-    OAUTH2_GITHUB_CLIENT_ID: str = ''
-    OAUTH2_GITHUB_CLIENT_SECRET: str = ''
-    OAUTH2_GITHUB_REDIRECT_URI: str = ''
     # google oauth
     OAUTH2_GOOGLE_CLIENT_ID: str = ''
     OAUTH2_GOOGLE_CLIENT_SECRET: str = ''
     OAUTH2_GOOGLE_REDIRECT_URI: str = ''
 
     OAUTH2_FRONTEND_LOGIN_REDIRECT_URI: str
-    OAUTH2_STATE_REDIS_PREFIX: str = 'wemcp:oauth2:state'
+    OAUTH2_STATE_REDIS_PREFIX: str = 'asclaw:oauth2:state'
     OAUTH2_STATE_EXPIRE_SECONDS: int = 180  # 3 分钟
 
     # 登录
-    LOGIN_CAPTCHA_REDIS_PREFIX: str = 'wemcp:login:captcha'
+    LOGIN_CAPTCHA_REDIS_PREFIX: str = 'asclaw:login:captcha'
 
     # Socket.IO
     WS_NO_AUTH_MARKER: str = 'internal'
@@ -149,10 +142,6 @@ class Settings(BaseSettings):
     CORS_ALLOWED_ORIGINS: list[str] = [
         'http://127.0.0.1:3000',
         'http://localhost:3000',
-        'https://www.wemcp.cn',
-        'https://wemcp.cn',
-        'https://www.wemcp.chat',
-        'https://wemcp.chat',
     ]
     CORS_EXPOSE_HEADERS: list[str] = [
         'X-Request-ID',
@@ -169,7 +158,7 @@ class Settings(BaseSettings):
     MIDDLEWARE_ACCESS: bool = True
 
     # 请求限制配置
-    REQUEST_LIMITER_REDIS_PREFIX: str = 'wemcp:limiter'
+    REQUEST_LIMITER_REDIS_PREFIX: str = 'asclaw:limiter'
 
     # 时间配置
     DATETIME_TIMEZONE: str = 'Asia/Shanghai'
@@ -184,7 +173,7 @@ class Settings(BaseSettings):
 
     # IP 定位配置
     IP_LOCATION_PARSE: Literal['online', 'offline', 'false'] = 'offline'
-    IP_LOCATION_REDIS_PREFIX: str = 'wemcp:ip:location'
+    IP_LOCATION_REDIS_PREFIX: str = 'asclaw:ip:location'
     IP_LOCATION_EXPIRE_SECONDS: int = 60 * 60 * 24  # 1 天
 
     # AI key
@@ -223,8 +212,8 @@ class Settings(BaseSettings):
         '<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</> | <lvl>{level: <8}</> | '
         '<cyan> {correlation_id} </> | <lvl>{message}</>'
     )
-    LOG_ACCESS_FILENAME: str = 'wemcp_access.log'
-    LOG_ERROR_FILENAME: str = 'wemcp_error.log'
+    LOG_ACCESS_FILENAME: str = 'asclaw_access.log'
+    LOG_ERROR_FILENAME: str = 'asclaw_error.log'
 
     # 操作日志
     OPERA_LOG_PATH_EXCLUDE: list[str] = [
@@ -233,7 +222,6 @@ class Settings(BaseSettings):
         '/redoc',
         '/openapi',
         f'{FASTAPI_API_V1_PATH}/auth/login/swagger',
-        f'{FASTAPI_API_V1_PATH}/oauth2/github/callback',
         f'{FASTAPI_API_V1_PATH}/oauth2/linux-do/callback',
     ]
     OPERA_LOG_ENCRYPT_TYPE: int = 1  # 0: AES (性能损耗); 1: md5; 2: ItsDangerous; 3: 不加密, others: 替换为 ******

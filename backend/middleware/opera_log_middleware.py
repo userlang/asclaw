@@ -169,7 +169,6 @@ class OperaLogMiddleware(BaseHTTPMiddleware):
             args['path_params'] = self.desensitization(path_params)
 
         # Tip: .body() 必须在 .form() 之前获取
-        # https://github.com/encode/starlette/discussions/1933
         content_type = request.headers.get('Content-Type', '').split(';')
 
         # 请求体

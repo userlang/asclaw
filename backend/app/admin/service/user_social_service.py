@@ -76,13 +76,6 @@ class UserSocialService:
         )
 
         match source:
-            case UserSocialType.github:
-                from app.admin.api.v1.oauth.github import github_client
-
-                auth_url = await github_client.get_authorization_url(
-                    redirect_uri=settings.OAUTH2_GITHUB_REDIRECT_URI,
-                    state=state,
-                )
             case UserSocialType.google:
                 from app.admin.api.v1.oauth.google import google_client
 

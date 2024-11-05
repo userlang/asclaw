@@ -154,7 +154,7 @@ export function CustomInput({
               value={text}
               onChange={(e) => handleInputChange(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="用WeMCP创造无限可能"
+              placeholder="用ASCLaw创造无限可能"
               rows={4}
               className={cn(
                 "min-h-[100px] w-full resize-none bg-transparent px-3 py-2.5 text-sm outline-none",

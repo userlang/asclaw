@@ -12,7 +12,6 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, MappedAsDataclass, declared_
 from utils.timezone import timezone
 
 # 雪花算法 Mapped 类型主键，使用方法与 id_key 相同
-# 详情：https://fastapi-practices.github.io/fastapi_best_architecture_docs/backend/reference/pk.html
 id_key = Annotated[
     int,
     mapped_column(

@@ -39,8 +39,6 @@ def setup_logging() -> None:
     设置日志处理器
 
     参考：
-    - https://github.com/benoitc/gunicorn/issues/1572#issuecomment-638391953
-    - https://github.com/pawamoy/pawamoy.github.io/issues/17
     """
     # 设置根日志处理器和级别
     logging.root.handlers = [InterceptHandler()]
@@ -58,7 +56,6 @@ def setup_logging() -> None:
         # logging.debug(f'{logging.getLogger(name)}, {logging.getLogger(name).propagate}')
 
     # 定义 correlation_id 默认过滤函数
-    # https://github.com/snok/asgi-correlation-id/issues/7
     def correlation_id_filter(record):
         cid = correlation_id.get(settings.LOG_CID_DEFAULT_VALUE)
         record['correlation_id'] = cid[: settings.LOG_CID_UUID_LENGTH]

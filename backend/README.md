@@ -1,12 +1,12 @@
-## WeMCP
+## ASCLaw
 
 ## Development
 
 ```
-wemcp celery worker
-wemcp celery beat
+asclaw celery worker
+asclaw celery beat
 # admin:123456
-wemcp celery flower
+asclaw celery flower
 ```
 
 ## virtualenv

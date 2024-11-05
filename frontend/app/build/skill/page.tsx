@@ -11,7 +11,7 @@ import { toast } from "sonner"
 export default function BuildSkillPage() {
   const [namespace, setNamespace] = useState("")
   const [slug, setSlug] = useState("")
-  const [githubUrl, setGithubUrl] = useState("")
+  const [sourceUrl, setGithubUrl] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
 
@@ -24,7 +24,7 @@ export default function BuildSkillPage() {
       toast.error("请输入 Slug")
       return
     }
-    if (!githubUrl.trim()) {
+    if (!sourceUrl.trim()) {
       toast.error("请输入 GitHub URL")
       return
     }
@@ -34,7 +34,7 @@ export default function BuildSkillPage() {
       await publishSkill({
         namespace: namespace.trim(),
         slug: slug.trim(),
-        github_url: githubUrl.trim(),
+        source_url: sourceUrl.trim(),
       })
       toast.success("Skill 发布成功，正在审核中")
       setTimeout(() => {
@@ -100,15 +100,15 @@ export default function BuildSkillPage() {
                   </p>
                 </div>
 
-                {/* GitHub URL */}
+                {/* Skill Source URL */}
                 <div className="mb-8">
                   <label className="mb-2 block text-sm font-medium text-foreground">
-                    GitHub URL *
+                    Skill Source URL *
                   </label>
                   <Input
-                    value={githubUrl}
+                    value={sourceUrl}
                     onChange={(e) => setGithubUrl(e.target.value)}
-                    placeholder="https://github.com/.../path/to/skill"
+                    placeholder="https://example.com/.../path/to/skill"
                     className="font-mono"
                   />
                   <p className="mt-2 text-sm text-muted-foreground">
@@ -200,8 +200,7 @@ export default function BuildSkillPage() {
                           <p className="mt-3 text-muted-foreground">
                             # Optional fields
                           </p>
-                          <p>license: MIT</p>
-                          <p>metadata:</p>
+                                                    <p>metadata:</p>
                           <p className="pl-4">author: your-org</p>
                           <p className="text-muted-foreground">---</p>
                         </div>

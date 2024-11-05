@@ -1,7 +1,7 @@
 services:
   caddy:
     image: caddy:2.8-alpine
-    container_name: wemcp-caddy
+    container_name: asclaw-caddy
     restart: always
     ports:
       - "80:80"
@@ -11,14 +11,14 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     networks:
-      - wemcp_network
+      - asclaw_network
     depends_on:
-      - wemcp_studio
-      - wemcp_server
+      - asclaw_studio
+      - asclaw_server
 
-  wemcp_studio:
-    container_name: wemcp-studio
-    image: ghcr.io/tomeai/wemcp-frontend:sha-66083a6
+  asclaw_studio:
+    container_name: asclaw-studio
+    image: ghcr.io/lang_junnan_admin/asclaw-frontend:sha-66083a6
     ports:
       - "3000:3000"
     volumes:
@@ -26,104 +26,104 @@ services:
     environment:
       TZ: Asia/Shanghai
     networks:
-      - wemcp_network
+      - asclaw_network
     depends_on:
-      - wemcp_server
+      - asclaw_server
     restart: always
 
-  wemcp_server:
-    image: ghcr.io/tomeai/wemcp-server:sha-66083a6
-    container_name: wemcp-server
+  asclaw_server:
+    image: ghcr.io/lang_junnan_admin/asclaw-server:sha-66083a6
+    container_name: asclaw-server
     restart: always
     ports:
       - "8000:8000"
     depends_on:
-      - wemcp_mysql
-      - wemcp_redis
-      - wemcp_worker
+      - asclaw_mysql
+      - asclaw_redis
+      - asclaw_worker
     volumes:
-      - ./config/.env.be.production:/wemcp/backend/.env
+      - ./config/.env.be.production:/asclaw/backend/.env
     networks:
-      - wemcp_network
+      - asclaw_network
     command:
       - bash
       - -c
       - |
-        wait-for-it -s wemcp_mysql:3306 -s wemcp_redis:6379 -t 300
+        wait-for-it -s asclaw_mysql:3306 -s asclaw_redis:6379 -t 300
         supervisord -c /etc/supervisor/supervisord.conf
         supervisorctl restart
 
-  wemcp_worker:
-    image: ghcr.io/tomeai/wemcp-celery:sha-66083a6
-    container_name: wemcp-worker
+  asclaw_worker:
+    image: ghcr.io/lang_junnan_admin/asclaw-celery:sha-66083a6
+    container_name: asclaw-worker
     restart: always
     ports:
       - "8555:8555"
     depends_on:
-      - wemcp_redis
+      - asclaw_redis
     volumes:
-      - ./config/.env.be.production:/wemcp/backend/.env
+      - ./config/.env.be.production:/asclaw/backend/.env
     networks:
-      - wemcp_network
+      - asclaw_network
     command:
       - bash
       - -c
       - |
-        wait-for-it -s wemcp_redis:6379 -t 300
+        wait-for-it -s asclaw_redis:6379 -t 300
         supervisord -c /etc/supervisor/supervisord.conf
         supervisorctl restart
 
-  wemcp_mysql:
+  asclaw_mysql:
     image: mysql:8.0.41
     ports:
       - "${DOCKER_MYSQL_MAP_PORT:-3306}:3306"
-    container_name: wemcp-mysql
+    container_name: asclaw-mysql
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: 123456
       TZ: Asia/Shanghai
     volumes:
-      - wemcp_mysql:/var/lib/mysql
+      - asclaw_mysql:/var/lib/mysql
       - ./sql/mysql/init:/docker-entrypoint-initdb.d
     networks:
-      - wemcp_network
+      - asclaw_network
     command:
       --default-authentication-plugin=mysql_native_password
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_general_ci
       --lower_case_table_names=1
 
-  #  wemcp_postgres:
+  #  asclaw_postgres:
   #    image: postgres:16
   #    ports:
   #      - "${DOCKER_POSTGRES_MAP_PORT:-5432}:5432"
-  #    container_name: wemcp-postgres
+  #    container_name: asclaw-postgres
   #    restart: always
   #    environment:
-  #      POSTGRES_DB: wemcp
+  #      POSTGRES_DB: asclaw
   #      POSTGRES_PASSWORD: 123456
   #      TZ: Asia/Shanghai
   #    volumes:
-  #      - wemcp_postgres:/var/lib/postgresql/data
+  #      - asclaw_postgres:/var/lib/postgresql/data
   #    networks:
-  #      - wemcp_network
+  #      - asclaw_network
 
-  wemcp_redis:
+  asclaw_redis:
     image: redis
     ports:
       - "${DOCKER_REDIS_MAP_PORT:-6379}:6379"
-    container_name: wemcp-redis
+    container_name: asclaw-redis
     restart: always
     environment:
       - TZ=Asia/Shanghai
     volumes:
-      - wemcp_redis:/data
+      - asclaw_redis:/data
     networks:
-      - wemcp_network
+      - asclaw_network
 
 networks:
-  wemcp_network:
-    name: wemcp_network
+  asclaw_network:
+    name: asclaw_network
     driver: bridge
     ipam:
       driver: default
@@ -131,11 +131,11 @@ networks:
         - subnet: 172.10.10.0/24
 
 volumes:
-  wemcp_mysql:
-    name: wemcp_mysql
-  wemcp_redis:
-    name: wemcp_redis
-  wemcp_postgres:
-    name: wemcp_postgres
+  asclaw_mysql:
+    name: asclaw_mysql
+  asclaw_redis:
+    name: asclaw_redis
+  asclaw_postgres:
+    name: asclaw_postgres
   caddy_data:
   caddy_config:

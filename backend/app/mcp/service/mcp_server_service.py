@@ -13,10 +13,10 @@ class McpServerService:
     def get_base_image(cmd) -> str:
         # bun deno 支持
         base_image = {
-            'npx': 'registry.cn-beijing.aliyuncs.com/biyao/public:wemcp-node20-v3',
-            'node': 'registry.cn-beijing.aliyuncs.com/biyao/public:wemcp-node20-v3',
-            'uvx': 'registry.cn-beijing.aliyuncs.com/biyao/public:wemcp-python3.10-v8',
-            'python': 'registry.cn-beijing.aliyuncs.com/biyao/public:wemcp-python3.10-v8',
+            'npx': 'registry.cn-beijing.aliyuncs.com/biyao/public:asclaw-node20-v3',
+            'node': 'registry.cn-beijing.aliyuncs.com/biyao/public:asclaw-node20-v3',
+            'uvx': 'registry.cn-beijing.aliyuncs.com/biyao/public:asclaw-python3.10-v8',
+            'python': 'registry.cn-beijing.aliyuncs.com/biyao/public:asclaw-python3.10-v8',
         }
         return base_image[cmd]
 

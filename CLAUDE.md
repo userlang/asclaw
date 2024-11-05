@@ -11,15 +11,15 @@ Complements `AGENTS.md` (conventions, module layout, run commands). This file fo
 ```shell
 uv sync                        # install deps (never pip install)
 alembic upgrade head           # apply migrations (required after model changes, before starting API)
-wemcp run                      # API server (granian) at :8000 — Swagger at /docs, OpenAPI JSON at /openapi
-wemcp celery worker            # Celery worker (required for MCP compile/deploy tasks)
-wemcp celery beat              # periodic task scheduler
-wemcp celery flower            # Celery monitoring UI :8555 (admin:123456)
-wemcp --sql PATH               # execute a SQL script in a transaction
+asclaw run                      # API server (granian) at :8000 — Swagger at /docs, OpenAPI JSON at /openapi
+asclaw celery worker            # Celery worker (required for MCP compile/deploy tasks)
+asclaw celery beat              # periodic task scheduler
+asclaw celery flower            # Celery monitoring UI :8555 (admin:123456)
+asclaw --sql PATH               # execute a SQL script in a transaction
 ```
 
-- **`wemcp run` is the only reliable launcher.** `python run.py` / plain `uvicorn main:app` fail with `ModuleNotFoundError: No module named 'backend'` because `core/registrar.py` does `from backend import __version__` (the `backend` package name is the repo's `backend/` directory, only importable when the repo root is on `sys.path`). If you see that error, run from the repo root or set `PYTHONPATH` to include it.
-- The CLI is cappa-based (`cli.py`): subcommands are `run` and `celery {worker|beat|flower}` — note `wemcp celery worker` (space), not `wemcp celery-worker`.
+- **`asclaw run` is the only reliable launcher.** `python run.py` / plain `uvicorn main:app` fail with `ModuleNotFoundError: No module named 'backend'` because `core/registrar.py` does `from backend import __version__` (the `backend` package name is the repo's `backend/` directory, only importable when the repo root is on `sys.path`). If you see that error, run from the repo root or set `PYTHONPATH` to include it.
+- The CLI is cappa-based (`cli.py`): subcommands are `run` and `celery {worker|beat|flower}` — note `asclaw celery worker` (space), not `asclaw celery-worker`.
 - Config is pydantic-settings from `backend/.env`. There is **no** `backend/deploy/.env.server.example` in the repo (README references it); the actual template is `backend/.env.example`. In Docker the compose file mounts `backend/deploy/.env.server` into the container.
 - Tests: `backend/tests/` contains ad-hoc manual scripts (`async def main()` style, e.g. `dashscope_test.py`), not a pytest suite. Run individually with `python tests/<name>.py`. pytest deps are installed but no test suite exists.
 - Lint: ruff via pre-commit (`backend/.ruff.toml`, line-length 120). `pre-commit run --all-files`.
@@ -43,8 +43,8 @@ Uses `frontend/.env.local` (dev) with `NEXT_PUBLIC_API_BASE_URL=http://localhost
 
 `database/db.py` and `database/chat_db.py` each create an independent async engine/session factory:
 
-- **Main DB** (`DATABASE_SCHEMA`, default `wemcp`): all domain tables (users, MCP servers, skills, tasks). Alembic migrations target this.
-- **Chat DB** (`DATABASE_CHAT_SCHEMA`, default `wemcp_chat`): agent thread/chat history (agentscope `AsyncSQLAlchemyMemory`).
+- **Main DB** (`DATABASE_SCHEMA`, default `asclaw`): all domain tables (users, MCP servers, skills, tasks). Alembic migrations target this.
+- **Chat DB** (`DATABASE_CHAT_SCHEMA`, default `asclaw_chat`): agent thread/chat history (agentscope `AsyncSQLAlchemyMemory`).
 
 Both are MySQL (`mysql+asyncmy`) or PostgreSQL; SQL init for Docker lives in `docker/sql/mysql/init/init.sql`.
 
@@ -56,7 +56,7 @@ Request flow: `app/<module>/api/v1/*.py` → `service/` → `crud/` (sqlalchemy-
 - All responses go through `common/response/response_schema.py` `response_base.success(...)`, producing `{code, msg, data}` where `code=200` is success. Errors raise `common.exception.errors.*` and are converted by global handlers.
 - Pagination: `common.pagination.paging_data(db, select)` + `DependsPagination`.
 - Auth: JWT bearer (`common/security/jwt.py`). `DependsJwtAuth = Depends(HTTPBearer())` guards endpoints. `superuser_verify` for admin-only. Admin routes additionally live under `/api/v1/admin/*`.
-- Login is email-verification-code based (`/api/v1/admin/auth/email-login`): code stored in Redis under `wemcp:email_code:<email>`; **first login auto-creates the user** (first user becomes superuser). With no real SMTP configured, seeding the Redis key is the way to log in locally.
+- Login is email-verification-code based (`/api/v1/admin/auth/email-login`): code stored in Redis under `asclaw:email_code:<email>`; **first login auto-creates the user** (first user becomes superuser). With no real SMTP configured, seeding the Redis key is the way to log in locally.
 - i18n: validation/error messages are localized from `backend/locale/{en-US.json,zh-CN.yml}`; a missing locale key surfaces as "当前语言包未初始化或不存在".
 
 ### MCP lifecycle (the core domain)

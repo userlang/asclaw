@@ -18,7 +18,7 @@ def _get_exception_code(status_code: int) -> int:
     """
     获取返回状态码（可用状态码基于 RFC 定义）
 
-    `python 状态码标准支持 <https://github.com/python/cpython/blob/6e3cc72afeaee2532b4327776501eb8234ac787b/Lib/http/__init__.py#L7>`__
+    python 状态码标准支持
 
     `IANA 状态码注册表 <https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml>`__
 
