@@ -45,7 +45,7 @@ AI Agent，并在统一的 Web UI 中完成所有操作。
 ## 快速开始
 
 ``` shell
-git clone <your-repo-url>.git
+git clone https://gitee.com/lang_junnan_admin/asclaw.git
 cd weclaw
 
 # 复制并修改环境变量文件
