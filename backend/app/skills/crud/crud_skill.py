@@ -7,7 +7,21 @@ from sqlalchemy_crud_plus import CRUDPlus
 
 class CRUDSkill(CRUDPlus[AgentSkill]):
     async def get_skill_by_user(self, db: AsyncSession, skill_name: str, user_id: int) -> AgentSkill | None:
-        return await self.select_model_by_column(db, name=skill_name, user_id=user_id)
+        return await self.select_model_by_column(
+            db,
+            name=skill_name,
+            user_id=user_id,
+            load_strategies={'user': 'selectinload', 'category': 'selectinload'},
+        )
+
+    async def get_public_skill_by_user(self, db: AsyncSession, skill_name: str, user_id: int) -> AgentSkill | None:
+        return await self.select_model_by_column(
+            db,
+            name=skill_name,
+            user_id=user_id,
+            is_public=1,
+            load_strategies={'user': 'selectinload', 'category': 'selectinload'},
+        )
 
     async def get_list(self, keyword: str | None = None, category_id: int | None = None) -> Select:
         filters = {'is_public': 1}
