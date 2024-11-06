@@ -83,8 +83,8 @@ export function Header() {
             <McpDropdown />
             {!isLoggedIn && (
               <Link
-                href="/user/auth/login"
-                className="font-base text-muted-foreground hover:text-foreground text-base transition-colors"
+                href="/enterprise/login"
+                className="bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500 bg-clip-text text-base text-transparent"
               >
                 登录
               </Link>

@@ -15,11 +15,13 @@ export function NaviMenu() {
     const [open, setOpen] = useState(false)
 
     const linkClass =
-        "font-base text-muted-foreground hover:text-foreground text-base transition-colors"
+        "bg-gradient-to-r from-muted-foreground/80 to-muted-foreground/50 bg-clip-text text-base text-transparent transition-all hover:from-indigo-500 hover:via-purple-500 hover:to-fuchsia-500"
     const activeLinkClass =
-        "font-base text-foreground text-base transition-colors border-b-2 border-foreground"
-    const mobileLinkClass = "font-base text-foreground text-lg py-3 block"
-    const mobileActiveLinkClass = "font-base text-foreground text-lg py-3 block border-b-2 border-foreground"
+        "relative bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500 bg-clip-text text-base text-transparent after:absolute after:inset-x-0 after:-bottom-1 after:h-0.5 after:rounded-full after:bg-gradient-to-r after:from-indigo-500 after:via-purple-500 after:to-fuchsia-500 after:content-['']"
+    const mobileLinkClass =
+        "block bg-gradient-to-r from-foreground/80 to-foreground/50 bg-clip-text py-3 text-lg text-transparent transition-all hover:from-indigo-500 hover:via-purple-500 hover:to-fuchsia-500"
+    const mobileActiveLinkClass =
+        "relative block bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500 bg-clip-text py-3 text-lg text-transparent after:absolute after:inset-x-0 after:bottom-1.5 after:h-0.5 after:rounded-full after:bg-gradient-to-r after:from-indigo-500 after:via-purple-500 after:to-fuchsia-500 after:content-['']"
 
     const isActive = (href: string) => {
         if (href === "/") {
@@ -50,6 +52,16 @@ export function NaviMenu() {
           >
             Skill
           </Link>
+          {isLoggedIn && (user?.is_staff || user?.is_superuser) && (
+            <Link
+              href="/user/admin/review"
+              className={
+                isActive("/user/admin/review") ? activeLinkClass : linkClass
+              }
+            >
+              Review
+            </Link>
+          )}
         </div>
 
         {/* Mobile Navigation */}
@@ -93,11 +105,24 @@ export function NaviMenu() {
                 >
                   Skill
                 </Link>
+                {isLoggedIn && (user?.is_staff || user?.is_superuser) && (
+                  <Link
+                    href="/user/admin/review"
+                    className={
+                      isActive("/user/admin/review")
+                        ? mobileActiveLinkClass
+                        : mobileLinkClass
+                    }
+                    onClick={() => setOpen(false)}
+                  >
+                    Review
+                  </Link>
+                )}
                 {!isLoggedIn && (
                   <Link
-                    href="/user/auth/login"
+                    href="/enterprise/login"
                     onClick={() => setOpen(false)}
-                    className="font-base text-foreground hover:text-primary block py-3 text-left text-lg transition-colors"
+                    className="block bg-gradient-to-r from-foreground/80 to-foreground/50 bg-clip-text py-3 text-left text-lg text-transparent transition-all hover:from-indigo-500 hover:via-purple-500 hover:to-fuchsia-500"
                   >
                     登录
                   </Link>

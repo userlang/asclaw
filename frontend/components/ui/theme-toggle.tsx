@@ -23,7 +23,11 @@ export function ThemeToggle() {
       aria-label={isDark ? "切换到浅色" : "切换到深色"}
       title={isDark ? "切换到浅色" : "切换到深色"}
     >
-      {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+      {isDark ? (
+        <Sun className="icon-gradient h-5 w-5" />
+      ) : (
+        <Moon className="icon-gradient h-5 w-5" />
+      )}
     </button>
   )
 }

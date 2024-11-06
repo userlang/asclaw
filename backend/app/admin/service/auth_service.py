@@ -117,8 +117,6 @@ class AuthService:
                 task = BackgroundTask(
                     login_log_service.create,
                     **dict(
-                        db=db,
-                        request=request,
                         user_uuid=user.uuid if user else uuid4_str(),
                         username=obj.username,
                         login_time=timezone.now(),
@@ -134,8 +132,6 @@ class AuthService:
                 background_tasks.add_task(
                     login_log_service.create,
                     **dict(
-                        db=db,
-                        request=request,
                         user_uuid=user.uuid,
                         username=obj.username,
                         login_time=timezone.now(),
@@ -314,8 +310,6 @@ class AuthService:
             background_tasks.add_task(
                 login_log_service.create,
                 **dict(
-                    db=db,
-                    request=request,
                     user_uuid=user.uuid,
                     username=user.username,
                     login_time=timezone.now(),

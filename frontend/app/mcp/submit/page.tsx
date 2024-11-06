@@ -1,5 +1,6 @@
 "use client"
 
+import { Header } from "@/components/layout/header"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -103,7 +104,9 @@ export default function McpSubmitPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-8">
+    <>
+      <Header />
+      <div className="mx-auto w-full max-w-3xl px-4 pt-24 pb-8">
       <Link
         href="/mcp"
         className="text-muted-foreground hover:text-foreground mb-6 inline-flex items-center gap-1 text-sm transition-colors"
@@ -242,6 +245,7 @@ export default function McpSubmitPage() {
           )}
         </Button>
       </div>
-    </div>
+      </div>
+    </>
   )
 }

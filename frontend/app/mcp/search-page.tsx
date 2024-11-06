@@ -243,7 +243,7 @@ export default function SearchPage() {
               )}
             >
               <Globe className="h-4 w-4" />
-              <span>社区</span>
+              <span>公共</span>
             </button>
 
             {/* Category list - always visible */}
@@ -314,7 +314,7 @@ export default function SearchPage() {
                 )}
               >
                 <Globe className="h-3.5 w-3.5" />
-                社区
+                公共
               </button>
               <button
                 onClick={() => setActiveTab("mine")}
@@ -513,7 +513,7 @@ export default function SearchPage() {
                   <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
                     请先登录查看我的 MCP 服务器
                   </p>
-                  <Link href="/user/auth/login">
+                  <Link href="/enterprise/login">
                     <Button size="sm">登录</Button>
                   </Link>
                 </div>

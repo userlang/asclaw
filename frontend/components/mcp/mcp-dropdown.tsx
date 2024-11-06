@@ -25,8 +25,10 @@ export function McpDropdown({ className }: McpDropdownProps) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className={`gap-2 ${className}`}>
-          <Server className="h-4 w-4" />
-          <span className="hidden sm:inline">构建</span>
+          <Server className="icon-gradient h-4 w-4" />
+          <span className="hidden bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500 bg-clip-text text-transparent sm:inline">
+            构建
+          </span>
           <ChevronDown className="h-3 w-3" />
         </Button>
       </DropdownMenuTrigger>

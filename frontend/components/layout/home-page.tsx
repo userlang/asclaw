@@ -6,10 +6,7 @@ import { getMcpRecommendList, McpRecommendItem } from "@/lib/mcp"
 import { cn } from "@/lib/utils"
 import {
   ArrowUpRight,
-  Brain,
   Globe,
-  Lightning,
-  Plugs,
   Robot,
 } from "@phosphor-icons/react"
 import Link from "next/link"
@@ -154,8 +151,8 @@ export default function HomePage() {
 
   return (
     <div className="@container/main relative flex min-h-screen flex-col">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden px-4 pt-24 pb-16 sm:px-6 md:pt-32 md:pb-20 lg:px-8">
+      {/* Hero Section — 水平垂直居中 */}
+      <section className="relative flex min-h-dvh items-center justify-center overflow-hidden px-4 pt-24 pb-16 sm:px-6 lg:px-8">
         <div className="relative mx-auto max-w-4xl text-center">
           {/* Top badge */}
           <div className="animate-fade-in-up mb-6 inline-flex items-center gap-2 rounded-full border border-border/50 bg-muted/50 px-4 py-1.5 text-sm text-muted-foreground backdrop-blur-sm">
@@ -164,36 +161,28 @@ export default function HomePage() {
           </div>
 
           {/* Title */}
-          <p className="animate-fade-in-up mb-3 text-3xl font-medium tracking-wide text-muted-foreground/70 sm:text-4xl [animation-delay:100ms]">
-            赋予 Agent 无限能力
-          </p>
-          <h1 className="animate-fade-in-up mb-8 text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl [animation-delay:150ms]">
-            <span className="animate-gradient-flow bg-[length:200%_auto] bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent dark:from-blue-400 dark:via-purple-400 dark:to-blue-400">
-              从想法到智能体，一步到位
-            </span>
-          </h1>
-
-          {/* Subtitle */}
-          <p className="animate-fade-in-up mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl [animation-delay:200ms]">
-            MCP 工具 + Skill 编排，打造能理解、会行动的 AI Agent
+          <p className="animate-fade-in-up mb-8 text-3xl font-medium tracking-wide text-muted-foreground/70 sm:text-4xl [animation-delay:100ms]">
+            赋予 AsClaw 无限能力
           </p>
 
-          {/* Feature highlights */}
-          <div className="animate-fade-in-up mt-10 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground sm:gap-8 [animation-delay:300ms]">
-            <div className="flex items-center gap-2">
-              <Plugs className="h-4 w-4" />
-              <span>MCP 工具生态</span>
-            </div>
-            <div className="hidden h-4 w-px bg-border sm:block" />
-            <div className="flex items-center gap-2">
-              <Lightning className="h-4 w-4" />
-              <span>可复用 Skill</span>
-            </div>
-            <div className="hidden h-4 w-px bg-border sm:block" />
-            <div className="flex items-center gap-2">
-              <Brain className="h-4 w-4" />
-              <span>一键构建 Agent</span>
-            </div>
+          {/* 企业入驻 CTA */}
+          <div className="animate-fade-in-up flex flex-col items-center gap-4 [animation-delay:150ms]">
+            <Link
+              href="/enterprise/apply"
+              className="group inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-[length:200%_auto] px-8 py-4 text-xl font-bold text-white shadow-lg transition-all hover:bg-right hover:shadow-xl"
+            >
+              申请入驻平台
+              <ArrowUpRight className="h-5 w-5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </Link>
+            <p className="text-muted-foreground text-sm">
+              提交企业资质，管理员审核通过后即可使用企业账号登录平台
+            </p>
+            <Link
+              href="/enterprise/login"
+              className="text-muted-foreground hover:text-primary text-sm underline-offset-4 hover:underline"
+            >
+              已有企业账号？前往登录
+            </Link>
           </div>
         </div>
       </section>

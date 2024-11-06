@@ -8,7 +8,8 @@ import { Header } from "./header";
 
 interface AdminLayoutProps {
   children: React.ReactNode
-  sidebar: React.ReactNode
+  /** 左侧菜单；不传则不渲染侧边栏，内容占满整行 */
+  sidebar?: React.ReactNode
 }
 
 export default function AdminLayout({ children, sidebar }: AdminLayoutProps) {
@@ -33,7 +34,7 @@ export default function AdminLayout({ children, sidebar }: AdminLayoutProps) {
     if (!isLoggedIn) {
       // 重定向到登录页面，并保存当前路径作为回调
       console.log("[AdminLayout] 用户未登录，重定向到登录页面")
-      router.push(`/user/auth/login?callbackUrl=${encodeURIComponent(pathname)}`)
+      router.push(`/enterprise/login?callbackUrl=${encodeURIComponent(pathname)}`)
     } else {
       console.log("[AdminLayout] 用户已登录，停止检查状态")
       setIsChecking(false)
@@ -63,12 +64,14 @@ export default function AdminLayout({ children, sidebar }: AdminLayoutProps) {
       <div className="bg-background @container/mainview relative flex min-h-screen w-full">
         <Header />
         <div className="pt-app-header flex min-h-screen flex-1">
-          {/* 侧边栏 - 20% */}
-          <aside className="border-border bg-muted/30 w-[20%] max-w-[300px] min-w-[200px] border-r">
-            <div className="h-full overflow-y-auto p-4">{sidebar}</div>
-          </aside>
+          {/* 侧边栏 - 20%（未传 sidebar 时不渲染） */}
+          {sidebar && (
+            <aside className="border-border bg-muted/30 w-[20%] max-w-[300px] min-w-[200px] border-r">
+              <div className="h-full overflow-y-auto p-4">{sidebar}</div>
+            </aside>
+          )}
 
-          {/* 主内容区域 - 80% */}
+          {/* 主内容区域 */}
           <main className="flex flex-1 flex-col">
             <div className="flex-1 p-6">{children}</div>
           </main>

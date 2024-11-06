@@ -5,10 +5,10 @@ import { usePathname, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
 /** 需要登录才能访问的路由前缀 */
-const PROTECTED_ROUTES = ["/chat", "/build", "/user"]
+const PROTECTED_ROUTES = ["/chat", "/mcp", "/skills", "/build", "/user"]
 
 /** 不需要登录的白名单（优先级高于 PROTECTED_ROUTES） */
-const PUBLIC_ROUTES = ["/user/auth/login", "/user/auth/callback"]
+const PUBLIC_ROUTES = ["/enterprise/login", "/enterprise/apply"]
 
 /** 需要管理员权限（is_staff 或 is_superuser）的路由前缀 */
 const ADMIN_ROUTES = ["/user/admin"]
@@ -52,7 +52,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     if (isProtected(pathname)) {
       const isLoggedIn = !!user || isJwtAuthenticated
       if (!isLoggedIn) {
-        router.push(`/user/auth/login?callbackUrl=${encodeURIComponent(pathname)}`)
+        router.push(`/enterprise/login?callbackUrl=${encodeURIComponent(pathname)}`)
         setAuthorized(false)
         return
       }
