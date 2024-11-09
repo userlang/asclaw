@@ -11,6 +11,18 @@ from fastmcp.mcp_config import StdioMCPServer
 from sqlalchemy import Select
 
 
+class McpError(errors.BaseExceptionError):
+    """mcp 模块业务异常
+
+    继承 BaseExceptionError 以命中全局自定义异常处理器，
+    保证 code/msg 原样返回（RequestError 系列会变成无信息的 500）。
+    """
+
+    def __init__(self, *, code: int = 400, msg: str = 'Bad Request'):
+        self.code = code
+        super().__init__(msg=msg)
+
+
 class McpServerService:
     @staticmethod
     def get_base_image(cmd) -> str:
@@ -77,6 +89,18 @@ class McpServerService:
             stmt = await mcp_category_dao.get_all_categories()
             result = await db.execute(stmt)
             return result.scalars().all()
+
+    @staticmethod
+    async def update_cover(username: str, mcp_id: int, cover: str | None) -> None:
+        """仅允许 MCP 创建者修改自己的封面"""
+        async with async_db_session.begin() as db:
+            user = await user_dao.get_by_username(db, username)
+            if not user:
+                raise McpError(code=404, msg=f'用户 {username} 不存在')
+            mcp_server = await mcp_server_dao.get_mcp(db, mcp_id)
+            if not mcp_server or mcp_server.user_id != user.id:
+                raise McpError(code=404, msg='MCP 不存在')
+            mcp_server.cover = cover
 
 
 mcp_server_service: McpServerService = McpServerService()

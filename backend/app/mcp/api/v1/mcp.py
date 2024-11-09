@@ -13,12 +13,13 @@ from app.mcp.schema.mcp import (
     GetMcpRecommendDetail,
     McpRecommendDetail,
     McpSearchDetail,
+    UpdateMcpCoverParam,
 )
 from app.mcp.service.mcp_category_service import mcp_category_service
-from app.mcp.service.mcp_server_service import mcp_server_service
+from app.mcp.service.mcp_server_service import McpError, mcp_server_service
 from common.exception import errors
 from common.pagination import DependsPagination, PageData, paging_data
-from common.response.response_schema import ResponseSchemaModel, response_base
+from common.response.response_schema import ResponseModel, ResponseSchemaModel, response_base
 from common.security.jwt import DependsJwtAuth
 from database.db import CurrentSession
 from fastapi import APIRouter, Path, Query, Request
@@ -89,6 +90,16 @@ async def get_mcp(
 ) -> ResponseSchemaModel[GetMcpDetail | None]:
     result = await mcp_server_service.get_mcp_by_user(username=username, server_name=server_name)
     return response_base.success(data=result)
+
+
+@router.put('/{mcp_id}/cover', summary='修改 MCP 封面', dependencies=[DependsJwtAuth])
+async def update_mcp_cover(
+    request: Request,
+    mcp_id: Annotated[int, Path(description='MCP id')],
+    obj: UpdateMcpCoverParam,
+) -> ResponseModel:
+    await mcp_server_service.update_cover(request.user.username, mcp_id, obj.cover)
+    return response_base.success()
 
 
 @router.post('/invoke')

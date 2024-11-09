@@ -103,7 +103,7 @@ export function Header() {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="relative h-8 w-8 rounded-full"
+                    className="relative h-[34px] w-[34px] rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500 p-px"
                   >
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={user?.avatar} alt={user?.nickname} />

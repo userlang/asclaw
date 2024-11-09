@@ -3,7 +3,6 @@
 
 "use client";
 
-import { useUser } from "@/components/providers/user-provider";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Bot, ChevronDown, Server, Sparkles } from "lucide-react";
@@ -15,15 +14,6 @@ interface McpDropdownProps {
 }
 
 export function McpDropdown({ className }: McpDropdownProps) {
-  const { user, isJwtAuthenticated } = useUser()
-  const isLoggedIn = !!user || isJwtAuthenticated
-
-  const handleAddMcpClick = () => {
-    if (!isLoggedIn) {
-      window.location.href = "/auth/login"
-    }
-  }
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -41,8 +31,10 @@ export function McpDropdown({ className }: McpDropdownProps) {
             href="/build/mcp"
             className="flex cursor-pointer items-center gap-2"
           >
-            <Server className="h-4 w-4" />
-            创建MCP
+            <Server className="icon-gradient h-4 w-4" />
+            <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500 bg-clip-text text-transparent">
+              创建MCP
+            </span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -51,8 +43,10 @@ export function McpDropdown({ className }: McpDropdownProps) {
             href="/build/skill"
             className="flex cursor-pointer items-center gap-2"
           >
-            <Sparkles className="h-4 w-4" />
-            创建Skill
+            <Sparkles className="icon-gradient h-4 w-4" />
+            <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500 bg-clip-text text-transparent">
+              创建Skill
+            </span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -61,8 +55,10 @@ export function McpDropdown({ className }: McpDropdownProps) {
             href="/build/agent"
             className="flex cursor-pointer items-center gap-2"
           >
-            <Bot className="h-4 w-4" />
-            创建Agent
+            <Bot className="icon-gradient h-4 w-4" />
+            <span className="bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500 bg-clip-text text-transparent">
+              创建Agent
+            </span>
           </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>

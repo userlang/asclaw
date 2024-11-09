@@ -305,7 +305,7 @@ export default function ServerDetailClient({
             >
               <Button className="gap-2 whitespace-nowrap">
                 <Play className="h-4 w-4" weight="fill" />
-                Playground
+                在线体验
               </Button>
             </Link>
           </div>

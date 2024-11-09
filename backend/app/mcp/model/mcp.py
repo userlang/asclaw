@@ -44,6 +44,8 @@ class McpServer(Base):
     readme: Mapped[str | None] = mapped_column(Text, default=None, comment='项目介绍')
     # 默认像素头像
     avatar: Mapped[str | None] = mapped_column(String(255), default=None, comment='项目头像')
+    # 封面图：仅用于首页等展示样式，可空
+    cover: Mapped[str | None] = mapped_column(String(255), default=None, comment='封面图')
     # 异步ai总结信息写入: 允许用户填写
     description: Mapped[str | None] = mapped_column(Text, default=None, comment='项目描述')
 

@@ -75,6 +75,7 @@ class McpRecommendDetail(SchemaBase):
     description: str | None = Field(None, description='描述')
     server_type: str = Field(description='类型')
     owner: str = Field(description='owner')
+    cover: str | None = Field(None, description='封面图，仅用于首页样式展示')
     call_count: int = Field(description='调用量')
 
     @model_validator(mode='before')
@@ -116,6 +117,10 @@ class UpdateMcpServerParam(SchemaBase):
     prompts: Optional[Dict[str, Any]] | None = Field(None, description='提示词')
     resources: Optional[Dict[str, Any]] | None = Field(None, description='资源')
     is_public: bool = Field(None, description='是否公开')
+
+
+class UpdateMcpCoverParam(SchemaBase):
+    cover: str | None = Field(None, max_length=255, description='封面图 URL，置空清除封面')
 
 
 class McpServersWrapper(BaseModel):
