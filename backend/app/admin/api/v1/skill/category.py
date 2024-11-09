@@ -1,10 +1,13 @@
+# 作者：langjunnan
+# 开发时间：2025年7月23日
+
 from app.admin.schema.category import AddCategoryParam, CategoryDetail, GetAllCategoryParam
 from app.admin.service.admin_skill_category_service import skill_admin_category_service
 from common.pagination import DependsPagination, PageData, paging_data
 from common.response.response_schema import ResponseModel, ResponseSchemaModel, response_base
 from common.security.jwt import DependsJwtAuth
-from database.db import CurrentSession
-from fastapi import APIRouter, Request
+from database.db import CurrentSession, CurrentSessionTransaction
+from fastapi import APIRouter, Path, Request
 
 router = APIRouter()
 
@@ -30,3 +33,18 @@ async def get_all_skill_category(
     result = await skill_admin_category_service.get_list(obj.is_recommend)
     page_data = await paging_data(db, result)
     return response_base.success(data=page_data)
+
+
+@router.delete(
+    '/{category_id}',
+    summary='删除 skill 分类',
+    dependencies=[DependsJwtAuth],
+)
+async def delete_skill_category(
+    db: CurrentSessionTransaction,
+    category_id: int = Path(description='分类ID'),
+) -> ResponseModel:
+    count = await skill_admin_category_service.delete(db=db, category_id=category_id)
+    if count > 0:
+        return response_base.success()
+    return response_base.fail()

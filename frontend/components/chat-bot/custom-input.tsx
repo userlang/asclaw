@@ -1,4 +1,7 @@
 "use client"
+// 作者：langjunnan
+// 开发时间：2025年7月23日
+
 
 import type { SelectedContext } from "./types"
 // import { AgentMentionDropdown } from "./agent-mention" // TODO: @agent 本期暂不开发
@@ -32,7 +35,6 @@ export function CustomInput({
   inProgress,
   onSend,
   onStop,
-  chatReady = false,
   selectedAgent,
   setSelectedAgent,
   selectedMcps,
@@ -132,7 +134,7 @@ export function CustomInput({
   return (
     <div ref={containerRef} className="relative px-4 py-3">
       <div className="mx-auto max-w-2xl">
-        <div className="bg-muted/50 rounded-xl border">
+        <div className="rounded-3xl border border-border/60 bg-card shadow-sm transition-all duration-200 focus-within:border-primary/40 focus-within:ring-4 focus-within:ring-primary/10">
           {/* Textarea row */}
           <div className="flex items-start">
             {selectedAgent && (
@@ -157,14 +159,14 @@ export function CustomInput({
               placeholder="用ASCLaw创造无限可能"
               rows={4}
               className={cn(
-                "min-h-[100px] w-full resize-none bg-transparent px-3 py-2.5 text-sm outline-none",
+                "placeholder:text-muted-foreground/60 min-h-[100px] w-full resize-none bg-transparent px-4 py-3 text-sm leading-relaxed outline-none",
                 selectedAgent && "pl-1.5"
               )}
             />
           </div>
 
           {/* Actions row */}
-          <div className="flex items-center justify-between px-2 pb-2">
+          <div className="flex items-center justify-between px-3 pb-2.5">
             <div className="flex flex-wrap items-center gap-1">
               {/* Attachment button */}
               <button className="hover:bg-accent h-8 w-8 rounded-full flex items-center justify-center">
@@ -247,7 +249,7 @@ export function CustomInput({
               {inProgress ? (
                 <button
                   onClick={onStop}
-                  className="bg-foreground text-background flex h-8 w-8 items-center justify-center rounded-full"
+                  className="bg-foreground text-background flex h-8 w-8 items-center justify-center rounded-full transition-transform active:scale-90"
                 >
                   <Square className="h-3.5 w-3.5" />
                 </button>
@@ -255,7 +257,7 @@ export function CustomInput({
                 <button
                   onClick={send}
                   disabled={!text.trim()}
-                  className="bg-primary text-primary-foreground flex h-8 w-8 items-center justify-center rounded-full disabled:opacity-50"
+                  className="bg-primary text-primary-foreground flex h-8 w-8 items-center justify-center rounded-full shadow-sm shadow-primary/25 transition-all hover:brightness-110 active:scale-90 disabled:opacity-50 disabled:shadow-none"
                 >
                   <ArrowUp className="h-4 w-4" />
                 </button>

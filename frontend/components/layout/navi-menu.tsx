@@ -1,3 +1,6 @@
+// 作者：langjunnan
+// 开发时间：2025年7月23日
+
 "use client";
 
 import { useUser } from "@/components/providers/user-provider";
@@ -52,6 +55,12 @@ export function NaviMenu() {
           >
             Skill
           </Link>
+          <Link
+            href="/agent"
+            className={isActive("/agent") ? activeLinkClass : linkClass}
+          >
+            Agent
+          </Link>
           {isLoggedIn && (user?.is_staff || user?.is_superuser) && (
             <Link
               href="/user/admin/review"
@@ -104,6 +113,17 @@ export function NaviMenu() {
                   onClick={() => setOpen(false)}
                 >
                   Skill
+                </Link>
+                <Link
+                  href="/agent"
+                  className={
+                    isActive("/agent")
+                      ? mobileActiveLinkClass
+                      : mobileLinkClass
+                  }
+                  onClick={() => setOpen(false)}
+                >
+                  Agent
                 </Link>
                 {isLoggedIn && (user?.is_staff || user?.is_superuser) && (
                   <Link

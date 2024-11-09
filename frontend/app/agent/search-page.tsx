@@ -1,4 +1,7 @@
 "use client"
+// 作者：langjunnan
+// 开发时间：2025年7月23日
+
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -203,6 +206,12 @@ export default function SearchPage() {
                 onKeyDown={handleKeyDown}
               />
             </div>
+            <Link href="/build/agent">
+              <Button variant="outline" className="h-10 gap-2 whitespace-nowrap">
+                <Robot className="h-4 w-4" />
+                创建 Agent
+              </Button>
+            </Link>
           </div>
 
           {/* Loading state */}

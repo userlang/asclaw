@@ -1,3 +1,6 @@
+// 作者：langjunnan
+// 开发时间：2025年7月23日
+
 import http from "@/lib/http"
 import { PaginatedData } from "@/lib/mcp"
 import {
@@ -55,6 +58,67 @@ export function searchAgents(
       keyword: params.keyword || undefined,
     },
   })
+}
+
+// ============ Agent Detail / Publish / Update / Delete ============
+
+export interface AgentFullDetail {
+  id: number
+  name: string
+  title: string
+  avatar: string | null
+  description: string | null
+  system_prompt: string | null
+  prologue: string | null
+  mcps: string[]
+  skills: string[]
+  enable_search: boolean
+  enable_multimodal: boolean
+  enable_suggest: boolean
+  is_public: boolean
+  category: string | null
+  owner: string
+}
+
+/** 获取 Agent 公开详情 */
+export function getAgentDetail(owner: string, agentName: string): Promise<AgentFullDetail> {
+  return http.get<AgentFullDetail>(
+    `/api/v1/agent/${encodeURIComponent(owner)}/${encodeURIComponent(agentName)}`
+  )
+}
+
+export interface AgentPublishParams {
+  name: string
+  title: string
+  avatar?: string
+  description?: string
+  system_prompt?: string
+  prologue?: string
+  mcps?: string[]
+  skills?: string[]
+  enable_search?: boolean
+  enable_multimodal?: boolean
+  enable_suggest?: boolean
+  is_public?: boolean
+  category_id?: number
+}
+
+/** 创建 Agent */
+export function publishAgent(params: AgentPublishParams): Promise<AgentFullDetail> {
+  return http.post<AgentFullDetail>("/api/v1/agent/publish", params)
+}
+
+/** 更新 Agent（全字段可选） */
+export function updateAgent(
+  agentId: number,
+  params: Partial<AgentPublishParams>
+): Promise<null> {
+  return http.put<null>(`/api/v1/agent/${agentId}`, params)
+}
+
+/** 删除我的 Agent */
+export function deleteMyAgent(agentId: number): Promise<null> {
+  return http.delete<null>(`/api/v1/agent/${agentId}`)
 }
 
 // ============ Admin Agent ============

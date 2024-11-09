@@ -1,3 +1,6 @@
+# 作者：langjunnan
+# 开发时间：2025年7月23日
+
 from __future__ import annotations
 
 from typing import Any, Self
@@ -29,11 +32,15 @@ class SkillDetail(SchemaBase):
 
 
 class GetSkillDetail(SchemaBase):
+    id: int = Field(0, description='skill id')
     name: str = Field(description='skill name')
     title: str = Field(description='skill title')
     description: str | None = Field(None, description='skill描述')
+    body: str | None = Field(None, description='SKILL.md 正文（Markdown）')
     path: str | None = Field(None, description='skill path')
     repository: str | None = Field(None, description='仓库地址')
+    source_url: str | None = Field(None, description='导入来源')
+    install_count: int = Field(0, description='安装/使用次数')
     owner: str = Field(description='owner')
     avatar: str = Field(description='avatar')
     category: str | None = Field(None, description='分类名称')
@@ -60,3 +67,20 @@ class GetSkillDetail(SchemaBase):
 class SkillCategoryDetail(SchemaBase):
     id: int = Field(description='id')
     name: str = Field(description='分类名称')
+
+
+class PublishSkillParam(SchemaBase):
+    """发布（导入）skill：来源支持 GitHub 目录 URL（含 SKILL.md）或手填元信息"""
+
+    name: str = Field(
+        ...,
+        min_length=2,
+        max_length=64,
+        pattern=r'^[a-z0-9][a-z0-9-]*$',
+        description='skill name，小写字母/数字/连字符',
+    )
+    title: str = Field(..., min_length=1, max_length=255, description='标题')
+    description: str = Field(..., min_length=1, max_length=1024, description='描述（注入 sys_prompt 的触发说明）')
+    category_id: int | None = Field(None, description='分类ID')
+    source_url: str | None = Field(None, max_length=500, description='SKILL.md 所在目录 URL（GitHub），提供时抓取正文')
+    body: str | None = Field(None, description='SKILL.md 正文（Markdown），未提供 source_url 时可直接填写')

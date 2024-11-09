@@ -1,3 +1,6 @@
+// 作者：langjunnan
+// 开发时间：2025年7月23日
+
 import http from "@/lib/http"
 import { PaginatedData } from "@/lib/mcp"
 import {
@@ -8,6 +11,9 @@ import {
   API_ROUTE_SKILL_ADMIN_SERVER_DETAIL,
   API_ROUTE_SKILL_ADMIN_SERVERS,
   API_ROUTE_SKILL_CATEGORIES,
+  API_ROUTE_SKILL_DELETE,
+  API_ROUTE_SKILL_FILES,
+  API_ROUTE_SKILL_INSTALL,
   API_ROUTE_SKILL_PUBLISH,
 } from "./routes"
 
@@ -35,8 +41,11 @@ export interface SkillDetail {
   name: string
   title: string
   description: string | null
+  body: string | null
   path: string | null
   repository: string | null
+  source_url: string | null
+  install_count: number
   owner: string
   avatar: string
   category: string | null
@@ -75,14 +84,38 @@ export function searchSkills(
 // ============ Skill Publish ============
 
 export interface SkillPublishParams {
-  namespace: string
-  slug: string
-  source_url: string
+  name: string
+  title: string
+  description: string
+  category_id?: number
+  source_url?: string
+  body?: string
 }
 
-/** 发布 Skill */
-export function publishSkill(params: SkillPublishParams): Promise<null> {
-  return http.post<null>(API_ROUTE_SKILL_PUBLISH, params)
+/** 发布（导入）Skill */
+export function publishSkill(params: SkillPublishParams): Promise<SkillDetail> {
+  return http.post<SkillDetail>(API_ROUTE_SKILL_PUBLISH, params)
+}
+
+/** 删除我的 Skill */
+export function deleteMySkill(skillId: number): Promise<null> {
+  return http.delete<null>(`${API_ROUTE_SKILL_DELETE}/${skillId}`)
+}
+
+/** Skill 附加文件 */
+export interface SkillFile {
+  file_path: string
+  content: string | null
+}
+
+/** 获取 Skill 附加文件列表 */
+export function getSkillFiles(skillId: number): Promise<SkillFile[]> {
+  return http.get<SkillFile[]>(`${API_ROUTE_SKILL_FILES}/${skillId}/files`)
+}
+
+/** 在线体验计数（进入 chat 时调用） */
+export function trackSkillInstall(skillId: number): Promise<null> {
+  return http.post<null>(`${API_ROUTE_SKILL_INSTALL}/${skillId}/install`)
 }
 
 // ============ Admin Skill ============

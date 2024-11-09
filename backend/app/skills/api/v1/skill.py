@@ -1,13 +1,19 @@
+# 作者：langjunnan
+# 开发时间：2025年7月23日
+
 from typing import Annotated, List
 
-from app.admin.schema.skill import AdminSkillBaseDetail
-from app.mcp.schema.skill import GetSkillDetail, SkillCategoryDetail, SkillDetail
+from app.mcp.schema.skill import (
+    GetSkillDetail,
+    PublishSkillParam,
+    SkillCategoryDetail,
+    SkillDetail,
+)
 from app.skills.service.skill_service import skill_service
-from common.exception import errors
 from common.pagination import DependsPagination, PageData, paging_data
-from common.response.response_schema import ResponseSchemaModel, response_base
+from common.response.response_schema import ResponseModel, ResponseSchemaModel, response_base
 from common.security.jwt import DependsJwtAuth
-from database.db import CurrentSession
+from database.db import CurrentSession, CurrentSessionTransaction
 from fastapi import APIRouter, Path, Query, Request
 
 router = APIRouter()
@@ -34,6 +40,56 @@ async def get_skill_categories() -> ResponseSchemaModel[List[SkillCategoryDetail
     return response_base.success(data=result)
 
 
+@router.get('/mine', summary='获取我的 skill 列表', dependencies=[DependsJwtAuth, DependsPagination])
+async def get_my_skills(
+    request: Request,
+    db: CurrentSession,
+) -> ResponseSchemaModel[PageData[GetSkillDetail]]:
+    skill_select = await skill_service.get_my_skills(user_id=request.user.id)
+    page_data = await paging_data(db, skill_select)
+    return response_base.success(data=page_data)
+
+
+@router.post('/publish', summary='发布（导入）skill', dependencies=[DependsJwtAuth])
+async def publish_skill(request: Request, obj: PublishSkillParam) -> ResponseSchemaModel[GetSkillDetail]:
+    """发布 skill：source_url 指向 GitHub 目录（含 SKILL.md）时自动抓取正文，否则用 body"""
+    skill = await skill_service.publish_skill(
+        user_id=request.user.id,
+        name=obj.name,
+        title=obj.title,
+        description=obj.description,
+        category_id=obj.category_id,
+        source_url=obj.source_url,
+        body=obj.body,
+    )
+    return response_base.success(data=skill)
+
+
+@router.delete('/{skill_id}', summary='删除我的 skill', dependencies=[DependsJwtAuth])
+async def delete_my_skill(
+    request: Request,
+    skill_id: Annotated[int, Path(description='skill_id')],
+) -> ResponseModel:
+    count = await skill_service.delete_my_skill(user_id=request.user.id, skill_id=skill_id)
+    if count > 0:
+        return response_base.success()
+    return response_base.fail()
+
+
+@router.get('/{skill_id}/files', summary='获取 skill 附加文件列表', dependencies=[DependsJwtAuth])
+async def get_skill_files(
+    skill_id: Annotated[int, Path(description='skill_id')],
+) -> ResponseSchemaModel[List[dict]]:
+    contents = await skill_service.get_skill_contents(skill_id)
+    return response_base.success(data=[{'file_path': c.file_path, 'content': c.content} for c in contents])
+
+
+@router.post('/{skill_id}/install', summary='在线体验计数', dependencies=[DependsJwtAuth])
+async def track_skill_install(skill_id: Annotated[int, Path(description='skill_id')]) -> ResponseModel:
+    await skill_service.increment_install_count(skill_id)
+    return response_base.success()
+
+
 @router.get('/{username}/{skill_name}', summary='skill detail')
 async def get_skill_detail(
     username: Annotated[str, Path(description='username')],
@@ -41,19 +97,7 @@ async def get_skill_detail(
 ) -> ResponseSchemaModel[GetSkillDetail | None]:
     result = await skill_service.get_public_skill_by_user(username=username, skill_name=skill_name)
     if not result:
+        from common.exception import errors
+
         raise errors.NotFoundError(msg='Skill不存在')
     return response_base.success(data=result)
-
-
-@router.get(
-    '/mine',
-    summary='获取我的 skill 列表',
-    dependencies=[DependsJwtAuth, DependsPagination],
-)
-async def get_my_skills(
-    request: Request,
-    db: CurrentSession,
-) -> ResponseSchemaModel[PageData[AdminSkillBaseDetail]]:
-    skill_select = await skill_service.get_my_skills(user_id=request.user.id)
-    page_data = await paging_data(db, skill_select)
-    return response_base.success(data=page_data)

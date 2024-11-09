@@ -1,3 +1,6 @@
+// 作者：langjunnan
+// 开发时间：2025年7月23日
+
 "use client";
 
 import { ChatBot } from "@/components/chat-bot";
@@ -95,9 +98,13 @@ export default function ChatClient({ type, owner, name }: ChatClientProps) {
     if (selectedSkills.length > 0) {
       params.set("skills", selectedSkills.map((s) => `${s.owner}/${s.name}`).join(","))
     }
+    // Agent 模式：传 agent=owner/name，后端加载其配置的 mcps/skills/system_prompt
+    if (type === "agent" && owner && name) {
+      params.set("agent", `${owner}/${name}`)
+    }
     const qs = params.toString()
     return qs ? `${COPILOT_BASE_URL}?${qs}` : COPILOT_BASE_URL
-  }, [selectedMcps, selectedSkills])
+  }, [selectedMcps, selectedSkills, type, owner, name])
 
   // 首次发消息时，将当前 thread 添加到 sidebar
   const handleSendMessage = useCallback(() => {

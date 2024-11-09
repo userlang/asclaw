@@ -1,10 +1,26 @@
+# 作者：langjunnan
+# 开发时间：2025年7月23日
+
 from app.agent.model import AgentServer
 from sqlalchemy import Select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import noload, selectinload
 from sqlalchemy_crud_plus import CRUDPlus
 
 
 class CRUDAgentServer(CRUDPlus[AgentServer]):
+    async def get_by_user_and_name(
+        self, db: AsyncSession, name: str, user_id: int, is_public: bool | None = None
+    ) -> AgentServer | None:
+        filters: dict = {'name': name, 'user_id': user_id}
+        if is_public is not None:
+            filters['is_public'] = 1 if is_public else 0
+        return await self.select_model_by_column(
+            db,
+            load_strategies={'user': 'selectinload', 'category': 'selectinload'},
+            **filters,
+        )
+
     async def get_list(self, keyword: str | None = None, category_id: int | None = None) -> Select:
         filters = {'is_public': 1}
         if category_id:

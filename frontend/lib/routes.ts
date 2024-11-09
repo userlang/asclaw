@@ -1,3 +1,6 @@
+// 作者：langjunnan
+// 开发时间：2025年7月23日
+
 export const API_ROUTE_MCPS = "/api/v1/mcp/"
 export const API_ROUTE_MY_MCPS = "/api/v1/mcp/mine"
 export const API_ROUTE_MCP_CATEGORIES = "/api/v1/mcp/categories"
@@ -33,6 +36,10 @@ export const API_ROUTE_SKILLS = "/api/v1/skill/"
 export const API_ROUTE_SKILL_CATEGORIES = "/api/v1/skill/categories"
 export const API_ROUTE_SKILL_PUBLISH = "/api/v1/skill/publish"
 export const API_ROUTE_MY_SKILLS = "/api/v1/skill/mine"
+export const API_ROUTE_SKILL_DETAIL = "/api/v1/skill"
+export const API_ROUTE_SKILL_DELETE = "/api/v1/skill"
+export const API_ROUTE_SKILL_FILES = "/api/v1/skill"
+export const API_ROUTE_SKILL_INSTALL = "/api/v1/skill"
 export const API_ROUTE_SKILL_ADMIN_SERVERS = "/api/v1/admin/skill/servers"
 export const API_ROUTE_SKILL_ADMIN_SERVER_DETAIL = "/api/v1/admin/skill/servers"
 export const API_ROUTE_SKILL_ADMIN_CATEGORY = "/api/v1/admin/skill/categories/get"

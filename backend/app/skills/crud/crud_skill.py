@@ -1,3 +1,6 @@
+# 作者：langjunnan
+# 开发时间：2025年7月23日
+
 from app.skills.model import AgentSkill
 from sqlalchemy import Select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,8 +26,12 @@ class CRUDSkill(CRUDPlus[AgentSkill]):
             load_strategies={'user': 'selectinload', 'category': 'selectinload'},
         )
 
+    async def get_by_name_and_user(self, db: AsyncSession, name: str, user_id: int) -> AgentSkill | None:
+        """name 在同一用户下唯一（详情 URL 是 /skills/{owner}/{name}），发布前查重"""
+        return await self.select_model_by_column(db, name=name, user_id=user_id)
+
     async def get_list(self, keyword: str | None = None, category_id: int | None = None) -> Select:
-        filters = {'is_public': 1}
+        filters = {'is_public': 1, 'status': 1}
         if category_id:
             filters['category_id'] = category_id
         if keyword:
