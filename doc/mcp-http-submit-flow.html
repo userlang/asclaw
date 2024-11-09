@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTTP（Remote）MCP 提交后的后台流程 · AsClaw</title>
+<style>
+  :root {
+    --bg: #f6f8fb;
+    --paper: #ffffff;
+    --ink: #0f172a;
+    --muted: #64748b;
+    --accent: #4f46e5;
+    --accent-soft: #eef2ff;
+    --accent-border: #c7d2fe;
+    --border: #e2e8f0;
+    --code-bg: #0f172a;
+    --code-ink: #e2e8f0;
+    --inline-bg: #eef2f7;
+    --warn-bg: #fffbeb;
+    --warn-border: #fde68a;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
+                 "Microsoft YaHei", "Noto Sans CJK SC", "Segoe UI", sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+  }
+  .page {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 40px 24px 64px;
+  }
+  .paper {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px 44px 48px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, .04), 0 8px 24px rgba(15, 23, 42, .04);
+  }
+  header.doc h1 {
+    margin: 0 0 8px;
+    font-size: 26px;
+    line-height: 1.35;
+    letter-spacing: .2px;
+  }
+  header.doc .meta {
+    color: var(--muted);
+    font-size: 13px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+  }
+  header.doc .meta code { font-size: 12px; }
+  .divider { border: 0; border-top: 1px solid var(--border); margin: 24px 0 0; }
+
+  nav.toc {
+    margin: 20px 0 8px;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-size: 14px;
+  }
+  nav.toc strong { color: var(--accent); margin-right: 8px; }
+  nav.toc ol { margin: 0; padding-left: 18px; display: grid; gap: 2px; }
+  nav.toc a { color: var(--ink); text-decoration: none; }
+  nav.toc a:hover { color: var(--accent); text-decoration: underline; }
+
+  #mermaid-status {
+    margin: 14px 0 0;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  h2 {
+    font-size: 20px;
+    margin: 40px 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--accent-soft);
+  }
+  h2 .no { color: var(--accent); margin-right: 8px; }
+  h3 { font-size: 16px; margin: 26px 0 10px; }
+  p { margin: 10px 0; }
+  ul, ol { margin: 10px 0; padding-left: 24px; }
+  li { margin: 6px 0; }
+  li > ul, li > ol { margin: 4px 0; }
+  strong { font-weight: 650; }
+
+  blockquote {
+    margin: 16px 0;
+    padding: 12px 18px;
+    background: var(--accent-soft);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 10px 10px 0;
+  }
+  blockquote p { margin: 4px 0; }
+
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: .88em;
+    background: var(--inline-bg);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 1px 5px;
+    word-break: break-all;
+  }
+  pre {
+    background: var(--code-bg);
+    color: var(--code-ink);
+    border-radius: 10px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  pre code { background: none; border: 0; padding: 0; color: inherit; font-size: inherit; word-break: normal; }
+
+  /* 图表：渲染成功后的容器 */
+  figure.diagram {
+    margin: 18px 0;
+    padding: 18px 12px;
+    background: #fbfcfe;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow-x: auto;
+    text-align: center;
+  }
+  figure.diagram svg { max-width: none; height: auto; }
+  figure.diagram .actor { font-weight: 600; }
+
+  /* 图表：Mermaid 未加载 / 渲染失败时的源码回退 */
+  pre.diagram {
+    background: #fffdf5;
+    color: #475569;
+    border: 1px dashed var(--warn-border);
+    white-space: pre;
+    font-size: 12.5px;
+  }
+  pre.diagram.show-source { background: var(--warn-bg); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0 18px;
+    font-size: 14px;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 9px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: var(--accent-soft); color: #3730a3; font-weight: 600; white-space: nowrap; }
+  tbody tr:nth-child(even) { background: #f8fafc; }
+  td code { white-space: nowrap; }
+
+  footer.doc {
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  @media (max-width: 640px) {
+    .paper { padding: 24px 18px 32px; }
+    th { white-space: normal; }
+  }
+  @media print {
+    body { background: #fff; }
+    .paper { border: 0; box-shadow: none; padding: 0; }
+    nav.toc, #mermaid-status { display: none; }
+    pre.diagram { white-space: pre-wrap; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="paper">
+
+    <header class="doc">
+      <h1>HTTP（Remote）MCP 提交后的后台流程</h1>
+      <div class="meta">
+        <span>来源：<code>doc/mcp-http-submit-flow.md</code></span>
+        <span>生成日期：2026-11-07</span>
+        <span>适用代码版本：main @ <code>046c99b</code></span>
+      </div>
+      <hr class="divider">
+    </header>
+
+    <nav class="toc" aria-label="目录">
+      <strong>目录</strong>
+      <ol>
+        <li><a href="#sec-conclusion">一句话结论</a></li>
+        <li><a href="#sec-1">一、整体交互流程图</a></li>
+        <li><a href="#sec-2">二、编译任务内部：工具是怎么被“发现”的</a></li>
+        <li><a href="#sec-3">三、“很多个工具”具体长什么样</a></li>
+        <li><a href="#sec-4">四、各组件交互关系（谁和谁说话）</a></li>
+        <li><a href="#sec-5">五、数据落点</a></li>
+        <li><a href="#sec-6">六、几个容易疑惑的点</a></li>
+      </ol>
+    </nav>
+
+    <p id="mermaid-status">图表渲染中…（Mermaid 需联网加载；若离线，将以源码形式展示）</p>
+
+    <blockquote>
+      <p>回答两个问题：</p>
+      <ol>
+        <li>前端提交一个 <strong>http 接口（remote）类型的 MCP</strong> 后，后台都做了哪些事、各组件之间怎么交互？</li>
+        <li>提交完成后详情页里出现的<strong>一堆工具（tools）是从哪来的</strong>？</li>
+      </ol>
+    </blockquote>
+
+    <p>先给一句话结论，再看流程图：</p>
+    <ul>
+      <li>
+        <strong>后台做了什么</strong>：前端只负责校验 JSON → 后端接口做“查重 + 派发 Celery 任务 + 写部署日志”三件事就立即返回；
+        真正的编译在 Celery worker 里进行 —— 用 MCP 协议<strong>真实连上你填的那个远程 URL</strong>，完成握手（initialize），
+        探测传输协议（streamable_http / sse 二选一），然后把服务器自己上报的 tools / prompts / resources 全部抓下来存进
+        <code>mcp_server</code> 表。
+      </li>
+      <li>
+        <strong>工具从哪来</strong>：<strong>全部来自你提交的那个远程 MCP 服务器本身</strong>，平台不做任何工具的生成或拆分。
+        MCP 协议握手时服务器会声明自己的能力（capabilities），平台据此调用 <code>tools/list</code>、<code>prompts/list</code>、
+        <code>resources/list</code> 把清单拉回来，原样存成 JSON。所以一个聚合型 MCP（比如 internally 挂了几十个 API 的网关）
+        提交后就会看到几十个工具。
+      </li>
+    </ul>
+
+    <h2 id="sec-1"><span class="no">一</span>整体交互流程图</h2>
+    <pre class="diagram" aria-label="整体交互时序图">sequenceDiagram
+    autonumber
+    participant U as 用户浏览器
+    participant FE as 前端 /mcp/submit&lt;br/&gt;(submitMcpServer)
+    participant API as FastAPI&lt;br/&gt;POST /api/v1/mcp/deploy/package
+    participant R as Redis&lt;br/&gt;(Celery broker)
+    participant W as Celery worker&lt;br/&gt;compile_mcp_server
+    participant M as 远程 MCP 服务器&lt;br/&gt;(你填的 url)
+    participant DB as MySQL
+
+    U-&gt;&gt;FE: 填写名称/描述 + mcpServers JSON(url)
+    FE-&gt;&gt;FE: 前端校验 JSON 结构&lt;br/&gt;(mcpServers 非空、有 url)
+    FE-&gt;&gt;API: POST {server_title, description, mcpServers}&lt;br/&gt;Authorization: Bearer JWT
+
+    API-&gt;&gt;DB: ① 查用户 (jwt → username → user)
+    API-&gt;&gt;DB: ② 查重 user_id + server_title&lt;br/&gt;已存在 → 409 Conflict
+    API-&gt;&gt;R: ③ compile_mcp_server.apply_async()&lt;br/&gt;(username, 参数JSON) → task_id
+    API-&gt;&gt;DB: ④ INSERT deploy_log&lt;br/&gt;(task_id, status=PENDING)
+    API--&gt;&gt;FE: 立即返回 {task_id, task_status}&lt;br/&gt;(不等编译结果)
+
+    Note over W: worker 异步消费，通常几十秒
+    R-&gt;&gt;W: 取出任务 compile_mcp_server
+    W-&gt;&gt;M: 探测协议: 先 streamable_http 连接+list_tools
+    alt 失败
+        W-&gt;&gt;M: 换 sse 再探测一次
+    end
+    W-&gt;&gt;M: MCP 握手 initialize → capabilities
+    W-&gt;&gt;M: capabilities.tools → tools/list
+    W-&gt;&gt;M: capabilities.prompts → prompts/list
+    W-&gt;&gt;M: capabilities.resources → resources/list
+    W-&gt;&gt;DB: ⑤ INSERT mcp_server&lt;br/&gt;(config/meta/tools/prompts/resources 全量落库)
+    W-&gt;&gt;DB: ⑥ 任务结果写入 task_result&lt;br/&gt;(celery result_backend = db+mysql)
+
+    Note over DB: celery beat 每 30s
+    W-&gt;&gt;DB: ⑦ sync_deploy_logs:&lt;br/&gt;task_result → deploy_log 同步状态
+    U-&gt;&gt;FE: 「我的 MCP」/ 详情页
+    FE-&gt;&gt;API: GET /api/v1/mcp/mine&lt;br/&gt;GET /api/v1/mcp/{username}/{server_name}
+    API-&gt;&gt;DB: 查 mcp_server (含 tools JSON)
+    API--&gt;&gt;FE: 返回工具列表 → 详情页展示</pre>
+
+    <h2 id="sec-2"><span class="no">二</span>编译任务内部：工具是怎么被“发现”的</h2>
+    <pre class="diagram" aria-label="编译任务内部流程图">flowchart TD
+    A[收到 mcpServers JSON] --> B{第一个 server 的类型?}
+    B -- 含 url&lt;br/&gt;RemoteMCPServer --> C["协议探测 judge_mcp_transport&lt;br/&gt;HttpStatefulClient(streamable_http, url)&lt;br/&gt;connect + list_tools"]
+    B -- 含 command&lt;br/&gt;StdioMCPServer --> D[transport = stdio&lt;br/&gt;后续本地子进程运行]
+    C -- 成功 --> E{探测到的是什么?}
+    C -- 失败 --> F["换 sse 再探测一次&lt;br/&gt;(sse ↔ streamable_http 互为 fallback)"]
+    F -- 成功 --> E
+    F -- 都失败 --> G[保持原 transport&lt;br/&gt;后面 Client 连接时报错&lt;br/&gt;任务 FAILED]
+    E -- sse --> H[transport = sse]
+    E -- streamable_http --> I[transport = streamable_http]
+    H & I --> J["fastmcp Client(mcp_config)&lt;br/&gt;connect + ping"]
+    D --> J
+    J --> K[initialize_result&lt;br/&gt;= 协议版本 / serverInfo / capabilities]
+    K --> L{"capabilities.tools&lt;br/&gt;为真?"}
+    L -- 是 --> M["client.list_tools_mcp()&lt;br/&gt;→ 工具清单 JSON"]
+    L -- 否 --> N[tools = None]
+    K --> O{"capabilities.prompts&lt;br/&gt;为真?"}
+    O -- 是 --> P["client.list_prompts_mcp()"]
+    O -- 否 --> Q[prompts = None]
+    K --> R{"capabilities.resources&lt;br/&gt;为真?"}
+    R -- 是 --> S["client.list_resources_mcp()"]
+    R -- 否 --> T[resources = None]
+    M & N & P & Q & S & T --> U["组装 McpServer 行:&lt;br/&gt;server_name = mcpServers 的 key&lt;br/&gt;server_type = remote&lt;br/&gt;server_config = 提交的配置原样回存&lt;br/&gt;server_metadata = initialize_result&lt;br/&gt;tools/prompts/resources = 抓到的清单&lt;br/&gt;avatar = dicebear(按 serverInfo.name 生成)"]
+    U --> V["事务内: 查用户 → 再查重&lt;br/&gt;(user_id, server_title) → INSERT"]</pre>
+
+    <h3>关键代码位置</h3>
+    <table>
+      <thead>
+        <tr><th>步骤</th><th>文件</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>提交入口（前端）</td>
+          <td><code>frontend/app/mcp/submit/page.tsx</code>、<code>frontend/lib/mcp.ts</code></td>
+          <td><code>submitMcpServer()</code> → POST <code>/api/v1/mcp/deploy/package</code></td>
+        </tr>
+        <tr>
+          <td>提交入口（后端）</td>
+          <td><code>backend/app/mcp/api/v1/deploy.py:20</code></td>
+          <td>查重 → <code>apply_async</code> → 写 <code>deploy_log</code> → 立即返回 task_id</td>
+        </tr>
+        <tr>
+          <td>Celery 任务定义</td>
+          <td><code>backend/app/task/tasks/tasks.py:18</code></td>
+          <td><code>compile_mcp_server</code> → <code>compile_mcp_service.compile_mcp_by_mcp_config</code></td>
+        </tr>
+        <tr>
+          <td>编译主体</td>
+          <td><code>backend/app/task/service/compile_mcp_service.py:52</code></td>
+          <td>建连、握手、抓清单、落库</td>
+        </tr>
+        <tr>
+          <td>协议探测</td>
+          <td><code>backend/app/task/service/compile_mcp_service.py:17</code></td>
+          <td><code>judge_mcp_transport</code>：streamable_http 失败自动换 sse</td>
+        </tr>
+        <tr>
+          <td>结果回写</td>
+          <td><code>backend/app/task/celery.py:40</code></td>
+          <td><code>result_backend=db+mysql+pymysql</code> → <code>task_result</code> 表</td>
+        </tr>
+        <tr>
+          <td>日志同步</td>
+          <td><code>backend/app/task/tasks/beat.py</code> + <code>tasks.py:23</code></td>
+          <td><code>sync_deploy_logs</code> 每 30s 把 <code>task_result</code> 状态同步进 <code>deploy_log</code></td>
+        </tr>
+        <tr>
+          <td>工具展示</td>
+          <td><code>backend/app/mcp/api/v1/mcp.py:82</code></td>
+          <td><code>GET /api/v1/mcp/{username}/{server_name}</code> 返回 tools/prompts/resources</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2 id="sec-3"><span class="no">三</span>“很多个工具”具体长什么样</h2>
+    <p><code>mcp_server.tools</code> 列里存的就是 MCP 协议 <code>tools/list</code> 的原始返回（JSON 数组），每个元素大致是：</p>
+    <pre><code>{
+  "name": "get_weather",
+  "description": "查询城市天气",
+  "inputSchema": {
+    "type": "object",
+    "properties": { "city": { "type": "string" } },
+    "required": ["city"]
+  }
+}</code></pre>
+    <ul>
+      <li><strong>数量完全由对方服务器决定</strong>：对方声明 <code>capabilities.tools</code>，平台才会去拉；对方有 50 个工具，详情页就有 50 个。</li>
+      <li><strong>平台没有做任何转换/拆分/合并</strong>，抓到什么存什么（<code>compile_mcp_service.py:104</code> 直接赋值）。</li>
+      <li>列表页的“工具数量”是前端/序列化层对这份 JSON 取 <code>len()</code>（<code>backend/app/mcp/schema/mcp.py:62</code>）。</li>
+    </ul>
+
+    <h2 id="sec-4"><span class="no">四</span>各组件交互关系（谁和谁说话）</h2>
+    <pre class="diagram" aria-label="组件交互关系图">flowchart LR
+    subgraph Client["用户侧"]
+        FE["前端 Next.js"]
+    end
+    subgraph Web["API 进程 :8000"]
+        API["FastAPI /api/v1/mcp/*"]
+    end
+    subgraph Async["异步侧"]
+        R[("Redis&lt;br/&gt;broker")]
+        W["Celery worker"]
+        B["Celery beat&lt;br/&gt;每30s"]
+    end
+    subgraph Store["存储"]
+        DB[("MySQL&lt;br/&gt;asclaw")]
+        CH[("MySQL&lt;br/&gt;asclaw_chat")]
+    end
+    subgraph Outside["外部"]
+        M["远程 MCP 服务器&lt;br/&gt;streamable_http / sse"]
+        LLM["LLM 网关&lt;br/&gt;DASHSCOPE_*"]
+    end
+
+    FE -- "HTTPS + JWT" --> API
+    API -- "投递任务" --> R
+    R -- "消费" --> W
+    W -- "MCP 协议握手/list_tools" --> M
+    W -- "写结果" --> DB
+    B -- "触发 sync_deploy_logs" --> W
+    API -- "读工具/配置" --> DB
+    FE -- "查列表/详情" --> API</pre>
+
+    <ul>
+      <li>
+        <strong>API ↔ Redis</strong>：<code>apply_async</code> 把任务丢进 Redis 队列（<code>app/task/celery.py</code> 的 <code>broker_url</code>），
+        接口立即返回，实现“提交即回”。
+      </li>
+      <li>
+        <strong>Worker ↔ 远程 MCP</strong>：编译期是唯一的强交互点 —— 探测协议、握手、拉清单。之后<strong>编译结果只存配置，不存连接</strong>。
+      </li>
+      <li>
+        <strong>Agent 聊天 ↔ 远程 MCP</strong>：真正调用工具时（<code>app/agent/api/v1/thread.py:158</code> 起），
+        按 <code>?mcps=owner/name</code> 从库里读出 <code>server_config</code> + <code>transport</code>，<strong>重新</strong>建
+        <code>HttpStatefulClient</code>/<code>StdIOStatefulClient</code> 连接并注册进 agentscope <code>Toolkit</code>，
+        由 ReActAgent 在对话中调用。也就是说：<strong>编译阶段抓的工具清单用于展示和选择，执行阶段每次会话都现场重连</strong>。
+      </li>
+      <li>
+        <strong>beat ↔ worker</strong>：beat 只负责每 30 秒触发 <code>sync_deploy_logs</code>，
+        把 <code>task_result</code>（Celery 结果后端写入）的状态/结果/traceback 搬到 <code>deploy_log</code>，
+        前端部署日志页才能看到 SUCCESS/FAILURE。
+      </li>
+    </ul>
+
+    <h2 id="sec-5"><span class="no">五</span>数据落点</h2>
+    <table>
+      <thead>
+        <tr><th>表</th><th>谁写入</th><th>内容</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>mcp_server</code></td>
+          <td>Celery worker（编译成功时）</td>
+          <td>
+            <code>server_name</code>（= mcpServers 的 key）、<code>server_title</code>（用户填的）、
+            <code>transport</code>（探测结果）、<code>server_type=remote</code>、
+            <code>server_config</code>（提交配置原样回存）、<code>server_metadata</code>（initialize 握手结果）、
+            <code>tools</code> / <code>prompts</code> / <code>resources</code>（抓到的清单）、
+            <code>avatar</code>（dicebear 随机图）
+          </td>
+        </tr>
+        <tr>
+          <td><code>deploy_log</code></td>
+          <td>API（提交时）+ beat 同步</td>
+          <td><code>task_id</code>、<code>task_status</code>（PENDING→SUCCESS/FAILURE）、<code>task_result</code>、<code>traceback</code></td>
+        </tr>
+        <tr>
+          <td><code>task_result</code></td>
+          <td>Celery result_backend</td>
+          <td>任务最终状态与返回值，<code>sync_deploy_logs</code> 的数据源</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>
+      唯一约束：<code>mcp_server</code> 上是 <code>(user_id, server_name)</code>；接口层查重用的是 <code>(user_id, server_title)</code> ——
+      也就是说<strong>同名 title 在接口层被拦，不同 title 但解析出相同 server_name 的提交会在落库时撞唯一约束</strong>
+      （这也是 <code>compile_mcp_service.py:56</code> 注释“和 serverInfo.name 不一定一样”相关的坑）。
+    </p>
+
+    <h2 id="sec-6"><span class="no">六</span>几个容易疑惑的点</h2>
+    <ol>
+      <li>
+        <strong>提交接口为什么叫 <code>deploy/package</code>？</strong>
+        历史命名：这个入口同时服务 stdio（本地包）和 remote（http url）两种提交，remote 也走“编译”这个词。
+        对 remote 而言“编译”实际就是“连接并内省”。
+      </li>
+      <li>
+        <strong>提交后多久能看到？</strong>
+        Worker 消费 + 远程握手通常几十秒；<code>deploy_log</code> 状态由 beat 每 30 秒同步一次，所以日志页最多有 ~30s 延迟。
+      </li>
+      <li>
+        <strong>为什么我填的是 http，详情页 transport 却是 sse？</strong>
+        <code>judge_mcp_transport</code> 先按 streamable_http 探测，连不上自动换 sse，探测成功以谁为准就存谁。
+      </li>
+      <li>
+        <strong>远端改了工具列表怎么办？</strong>
+        库里存的是<strong>编译那一刻的快照</strong>。目前没有定时重新内省的任务；但 agent 聊天执行时是现场重连，
+        实际可调用的工具以远端当时返回为准，可能与快照不一致。
+      </li>
+      <li>
+        <strong>serverless 部署（<code>create_serverless</code>）参与这条链路吗？</strong>
+        不参与。那是给 stdio 包（npx/uvx）托管到阿里云函数计算用的（<code>mcp_server_service.compile_command</code>
+        用 <code>mcp-proxy</code> 把 stdio 包成 SSE），当前仓库里没有 API 入口调用它，属于预留的“hosted 部署”路径。
+      </li>
+      <li>
+        <strong>失败会怎样？</strong>
+        协议探测两次都失败时探测函数返回原值，随后 <code>Client(mcp_config)</code> 建连抛异常 → Celery 任务 FAILURE →
+        <code>task_result</code>/<code>deploy_log</code> 记录 traceback，<code>mcp_server</code> 表不会有记录。
+      </li>
+    </ol>
+
+    <footer class="doc">
+      <p>
+        AsClaw 内部文档 · 由 <code>doc/mcp-http-submit-flow.md</code> 转换生成 ·
+        三张图为 Mermaid 渲染，源码保留在本页 <code>pre.diagram</code> 节点中，可直接复制回 Markdown 使用。
+      </p>
+    </footer>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var STATUS_OK = '✅ 三张图已由 Mermaid 渲染完成。';
+  var STATUS_PARTIAL = '⚠️ 部分图表渲染失败，对应位置以源码形式展示。';
+  var STATUS_OFFLINE = '⚠️ Mermaid 未能加载（离线或 CDN 不可达），三张图以源码形式展示。';
+
+  var CDN_SOURCES = [
+    'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js',
+    'https://cdn.bootcdn.net/ajax/libs/mermaid/11.4.1/mermaid.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.1/mermaid.min.js',
+    'https://unpkg.com/mermaid@11/dist/mermaid.min.js'
+  ];
+
+  function loadScript(src) {
+    return new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = src;
+      s.onload = function () { resolve(); };
+      s.onerror = function () { reject(new Error('failed: ' + src)); };
+      document.head.appendChild(s);
+    });
+  }
+
+  function loadMermaid() {
+    var chain = Promise.reject();
+    CDN_SOURCES.forEach(function (src) {
+      chain = chain.catch(function () {
+        return loadScript(src).then(function () {
+          if (!window.mermaid) throw new Error('mermaid missing after ' + src);
+          return window.mermaid;
+        });
+      });
+    });
+    return chain;
+  }
+
+  function setStatus(text) {
+    var el = document.getElementById('mermaid-status');
+    if (el) el.textContent = text;
+  }
+
+  function main() {
+    var blocks = Array.prototype.slice.call(document.querySelectorAll('pre.diagram'));
+    if (!blocks.length) { setStatus(''); return; }
+
+    loadMermaid().then(function (mermaid) {
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: 'base',
+        securityLevel: 'strict',
+        themeVariables: {
+          fontFamily: '-apple-system, "PingFang SC", "Microsoft YaHei", sans-serif',
+          fontSize: '14px',
+          primaryColor: '#eef2ff',
+          primaryTextColor: '#1e293b',
+          primaryBorderColor: '#a5b4fc',
+          lineColor: '#94a3b8',
+          secondaryColor: '#f1f5f9',
+          tertiaryColor: '#f8fafc',
+          noteBkgColor: '#fef9c3',
+          noteTextColor: '#713f12',
+          noteBorderColor: '#fde047',
+          actorBkg: '#eef2ff',
+          actorBorder: '#a5b4fc',
+          actorTextColor: '#1e293b',
+          signalColor: '#475569',
+          signalTextColor: '#334155'
+        },
+        flowchart: { useMaxWidth: false, htmlLabels: true, curve: 'basis' },
+        sequence: { useMaxWidth: false, wrap: false }
+      });
+
+      var ok = 0;
+      var chain = Promise.resolve();
+      blocks.forEach(function (block, i) {
+        chain = chain.then(function () {
+          var src = block.textContent.trim();
+          return mermaid.render('mmd-' + i, src).then(function (res) {
+            var fig = document.createElement('figure');
+            fig.className = 'diagram';
+            fig.innerHTML = res.svg;
+            block.replaceWith(fig);
+            ok += 1;
+          }).catch(function (err) {
+            console.error('mermaid render failed for block', i, err);
+            block.classList.add('show-source');
+          });
+        });
+      });
+      return chain.then(function () {
+        setStatus(ok === blocks.length ? STATUS_OK : STATUS_PARTIAL);
+      });
+    }).catch(function (err) {
+      console.error('mermaid load failed', err);
+      blocks.forEach(function (b) { b.classList.add('show-source'); });
+      setStatus(STATUS_OFFLINE);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', main);
+  } else {
+    main();
+  }
+})();
+</script>
+</body>
+</html>

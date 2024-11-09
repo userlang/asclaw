@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>暗影地牢 · AI 勇者养成计划 —— 逐步照抄实现文档</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body {
+  margin: 0; padding: 40px 20px 80px; background: #fff; color: #1f2328;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+               "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  font-size: 16px; line-height: 1.8;
+  text-rendering: optimizeLegibility;
+}
+main { max-width: 880px; margin: 0 auto; }
+h1, h2, h3, h4 { font-weight: 600; line-height: 1.4; margin: 28px 0 16px; }
+h1 { font-size: 1.9em; padding-bottom: .3em; border-bottom: 1px solid #d8dee4; }
+h2 { font-size: 1.45em; padding-bottom: .3em; border-bottom: 1px solid #e6e8eb; }
+h3 { font-size: 1.2em; }
+p { margin: 12px 0; }
+a { color: #0969da; text-decoration: none; }
+a:hover { text-decoration: underline; }
+strong { font-weight: 600; }
+blockquote {
+  margin: 16px 0; padding: 2px 18px; color: #59636e;
+  border-left: 4px solid #d0d7de; background: #f9fafb; border-radius: 0 6px 6px 0;
+}
+blockquote p { margin: 8px 0; }
+code {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 85%; background: #f6f8fa; padding: .2em .4em; border-radius: 6px;
+}
+pre { margin: 16px 0; padding: 16px; background: #f6f8fa; border-radius: 8px;
+      overflow-x: auto; border: 1px solid #e6e8eb; }
+pre code { padding: 0; background: none; font-size: 88%; line-height: 1.6; }
+.codehilite { background: #f6f8fa; border-radius: 8px; }
+.codehilite pre { margin: 0; border: none; }
+table { border-collapse: collapse; margin: 16px 0; display: block; overflow-x: auto; max-width: 100%; }
+th, td { border: 1px solid #d0d7de; padding: 7px 14px; }
+th { background: #f6f8fa; font-weight: 600; }
+tbody tr:nth-child(2n) { background: #f9fafb; }
+hr { border: none; border-top: 1px solid #d8dee4; margin: 32px 0; }
+ul, ol { padding-left: 1.6em; }
+li { margin: 4px 0; }
+nav.toc {
+  background: #f6f8fa; border: 1px solid #e6e8eb; border-radius: 8px;
+  padding: 14px 22px; margin: 20px 0 32px; font-size: .92em;
+}
+nav.toc .toc-title { font-weight: 600; margin-bottom: 6px; }
+nav.toc ul { margin: 4px 0; padding-left: 1.4em; list-style: none; }
+nav.toc > ul { padding-left: 0; }
+nav.toc > ul > li { margin: 6px 0; }
+nav.toc > ul > li > ul { margin-top: 2px; }
+nav.toc > ul > li > a { font-weight: 600; }
+@media print { body { padding: 0; } pre, table { break-inside: avoid; } }
+</style>
+<style>pre { line-height: 125%; }
+td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.codehilite .hll { background-color: #ffffcc }
+.codehilite { background: #f8f8f8; }
+.codehilite .c { color: #3D7B7B; font-style: italic } /* Comment */
+.codehilite .err { border: 1px solid #F00 } /* Error */
+.codehilite .k { color: #008000; font-weight: bold } /* Keyword */
+.codehilite .o { color: #666 } /* Operator */
+.codehilite .ch { color: #3D7B7B; font-style: italic } /* Comment.Hashbang */
+.codehilite .cm { color: #3D7B7B; font-style: italic } /* Comment.Multiline */
+.codehilite .cp { color: #9C6500 } /* Comment.Preproc */
+.codehilite .cpf { color: #3D7B7B; font-style: italic } /* Comment.PreprocFile */
+.codehilite .c1 { color: #3D7B7B; font-style: italic } /* Comment.Single */
+.codehilite .cs { color: #3D7B7B; font-style: italic } /* Comment.Special */
+.codehilite .gd { color: #A00000 } /* Generic.Deleted */
+.codehilite .ge { font-style: italic } /* Generic.Emph */
+.codehilite .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.codehilite .gr { color: #E40000 } /* Generic.Error */
+.codehilite .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.codehilite .gi { color: #008400 } /* Generic.Inserted */
+.codehilite .go { color: #717171 } /* Generic.Output */
+.codehilite .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+.codehilite .gs { font-weight: bold } /* Generic.Strong */
+.codehilite .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.codehilite .gt { color: #04D } /* Generic.Traceback */
+.codehilite .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+.codehilite .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+.codehilite .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+.codehilite .kp { color: #008000 } /* Keyword.Pseudo */
+.codehilite .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+.codehilite .kt { color: #B00040 } /* Keyword.Type */
+.codehilite .m { color: #666 } /* Literal.Number */
+.codehilite .s { color: #BA2121 } /* Literal.String */
+.codehilite .na { color: #687822 } /* Name.Attribute */
+.codehilite .nb { color: #008000 } /* Name.Builtin */
+.codehilite .nc { color: #00F; font-weight: bold } /* Name.Class */
+.codehilite .no { color: #800 } /* Name.Constant */
+.codehilite .nd { color: #A2F } /* Name.Decorator */
+.codehilite .ni { color: #717171; font-weight: bold } /* Name.Entity */
+.codehilite .ne { color: #CB3F38; font-weight: bold } /* Name.Exception */
+.codehilite .nf { color: #00F } /* Name.Function */
+.codehilite .nl { color: #767600 } /* Name.Label */
+.codehilite .nn { color: #00F; font-weight: bold } /* Name.Namespace */
+.codehilite .nt { color: #008000; font-weight: bold } /* Name.Tag */
+.codehilite .nv { color: #19177C } /* Name.Variable */
+.codehilite .ow { color: #A2F; font-weight: bold } /* Operator.Word */
+.codehilite .w { color: #BBB } /* Text.Whitespace */
+.codehilite .mb { color: #666 } /* Literal.Number.Bin */
+.codehilite .mf { color: #666 } /* Literal.Number.Float */
+.codehilite .mh { color: #666 } /* Literal.Number.Hex */
+.codehilite .mi { color: #666 } /* Literal.Number.Integer */
+.codehilite .mo { color: #666 } /* Literal.Number.Oct */
+.codehilite .sa { color: #BA2121 } /* Literal.String.Affix */
+.codehilite .sb { color: #BA2121 } /* Literal.String.Backtick */
+.codehilite .sc { color: #BA2121 } /* Literal.String.Char */
+.codehilite .dl { color: #BA2121 } /* Literal.String.Delimiter */
+.codehilite .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+.codehilite .s2 { color: #BA2121 } /* Literal.String.Double */
+.codehilite .se { color: #AA5D1F; font-weight: bold } /* Literal.String.Escape */
+.codehilite .sh { color: #BA2121 } /* Literal.String.Heredoc */
+.codehilite .si { color: #A45A77; font-weight: bold } /* Literal.String.Interpol */
+.codehilite .sx { color: #008000 } /* Literal.String.Other */
+.codehilite .sr { color: #A45A77 } /* Literal.String.Regex */
+.codehilite .s1 { color: #BA2121 } /* Literal.String.Single */
+.codehilite .ss { color: #19177C } /* Literal.String.Symbol */
+.codehilite .bp { color: #008000 } /* Name.Builtin.Pseudo */
+.codehilite .fm { color: #00F } /* Name.Function.Magic */
+.codehilite .vc { color: #19177C } /* Name.Variable.Class */
+.codehilite .vg { color: #19177C } /* Name.Variable.Global */
+.codehilite .vi { color: #19177C } /* Name.Variable.Instance */
+.codehilite .vm { color: #19177C } /* Name.Variable.Magic */
+.codehilite .il { color: #666 } /* Literal.Number.Integer.Long */</style>
+</head>
+<body>
+<main>
+<nav class="toc"><div class="toc-title">目录</div><ul><li><a href="#ai">暗影地牢 · AI 勇者养成计划 —— 逐步照抄实现文档</a><ul><li><a href="#0">第 0 步 · 新建文件，抄导入块与配置</a></li><li><a href="#1">第 1 步 · 抄规则常量（本案例新增的核心数值）</a></li><li><a href="#2-gamestate">第 2 步 · 抄 GameState（世界状态）</a></li><li><a href="#3-9">第 3 步 · 抄 9 个工具函数（完整代码，直接复制）</a></li><li><a href="#4-build_agent">第 4 步 · 抄 build_agent（装配 + 注册）</a></li><li><a href="#5-main">第 5 步 · 抄 main()（发起对局）</a></li><li><a href="#6">第 6 步 · 跑起来，观察</a></li><li><a href="#_1">常见翻车速查表</a></li><li><a href="#testgame_agentpy">完整文件顺序小结（自上而下拼起来就是 test/game_agent.py）</a></li></ul></li></ul></nav>
+<h1 id="ai">暗影地牢 · AI 勇者养成计划 —— 逐步照抄实现文档</h1>
+<blockquote>
+<p>配套设计文档：<code>test/agent-game-design.html</code>（游戏规则、数值配平、七步接线指南都在那里，本文不重复）。
+本文是<strong>实现文档</strong>：每一步给出完整、可直接复制的代码。你照抄即可，无需自己补任何实现。</p>
+<p>目标闭环：<strong>每件装备都锻造 20 级之后，方可击败地牢之主。</strong>
+（20 级即全套 6 件装备各升至 20 级；数值在原设计上小幅配平，见"数值改动一览"。）</p>
+</blockquote>
+<p>运行方式（仓库根目录）：</p>
+<div class="codehilite"><pre><span></span><code>backend/.venv/bin/python<span class="w"> </span>test/game_agent.py
+</code></pre></div>
+
+<p>前置条件与 <code>test/react_agent_demo.py</code> 完全一致：<code>DASHSCOPE_API_KEY</code> 已设置（或写入 <code>backend/.env</code>，脚本会自动读取）。</p>
+<hr />
+<h2 id="0">第 0 步 · 新建文件，抄导入块与配置</h2>
+<p>新建 <code>test/game_agent.py</code>。头部整段抄自 <code>test/react_agent_demo.py</code>（跑通过的），一个字不用改：</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">agentscope.agent</span><span class="w"> </span><span class="kn">import</span> <span class="n">ReActAgent</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">agentscope.formatter</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAIChatFormatter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">agentscope.message</span><span class="w"> </span><span class="kn">import</span> <span class="n">Msg</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">agentscope.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAIChatModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">agentscope.plan</span><span class="w"> </span><span class="kn">import</span> <span class="n">PlanNotebook</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">agentscope.token</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenAITokenCounter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">agentscope.tool</span><span class="w"> </span><span class="kn">import</span> <span class="n">Toolkit</span><span class="p">,</span> <span class="n">ToolResponse</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">agentscope.message</span><span class="w"> </span><span class="kn">import</span> <span class="n">TextBlock</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">loguru</span><span class="w"> </span><span class="kn">import</span> <span class="n">logger</span>
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># 配置读取：优先环境变量，其次尝试解析 backend/.env（避免强依赖 backend 包导入）</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<span class="n">REPO_ROOT</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_load_dotenv_fallback</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""把 backend/.env 中的键补进 os.environ（不覆盖已有环境变量）。"""</span>
+    <span class="n">env_file</span> <span class="o">=</span> <span class="n">REPO_ROOT</span> <span class="o">/</span> <span class="s1">'backend'</span> <span class="o">/</span> <span class="s1">'.env'</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">env_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">return</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">env_file</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s1">'utf-8'</span><span class="p">)</span><span class="o">.</span><span class="n">splitlines</span><span class="p">():</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span> <span class="ow">or</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'#'</span><span class="p">)</span> <span class="ow">or</span> <span class="s1">'='</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">key</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s1">'='</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">'"'</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">"'"</span><span class="p">))</span>
+
+
+<span class="n">_load_dotenv_fallback</span><span class="p">()</span>
+
+<span class="n">DASHSCOPE_API_KEY</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">'DASHSCOPE_API_KEY'</span><span class="p">,</span> <span class="s1">'sk-xxx'</span><span class="p">)</span>
+<span class="n">DASHSCOPE_BASE_URL</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span>
+    <span class="s1">'DASHSCOPE_BASE_URL'</span><span class="p">,</span>
+    <span class="s1">'http://api-ai.stage-xy.ktopia.cn:82/v1'</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">DASHSCOPE_CHAT_MODEL</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">'DASHSCOPE_CHAT_MODEL'</span><span class="p">,</span> <span class="s1">'qwen3.7-max'</span><span class="p">)</span>
+</code></pre></div>
+
+<blockquote>
+<p>注意：<code>DASHSCOPE_API_KEY</code> 的默认值请抄 <code>react_agent_demo.py</code> 第 81 行那个真实 key（本文写成 <code>sk-xxx</code> 防止泄露进 git）。</p>
+</blockquote>
+<p><strong>自检 ①：</strong></p>
+<div class="codehilite"><pre><span></span><code>backend/.venv/bin/python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"import sys; sys.path.insert(0,'test'); import game_agent"</span>
+</code></pre></div>
+
+<p>不报错才能进下一步。</p>
+<hr />
+<h2 id="1">第 1 步 · 抄规则常量（本案例新增的核心数值）</h2>
+<p>原设计的 10 点造价 / 5 件护甲改成了 <strong>20 级升级制</strong>。以下常量整段抄：</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># 暗影地牢 · 规则常量（数值配平见 agent-game 文档）</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<span class="n">FORGE_COST</span> <span class="o">=</span> <span class="mi">10</span>                    <span class="c1"># 每级锻造消耗：10 经验</span>
+<span class="n">ARMOR_DEFENSE</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'肩甲'</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">'胸甲'</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">'鞋子'</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">'护腿'</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">'腰带'</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+<span class="n">ARMOR_SLOTS</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">ARMOR_DEFENSE</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="s1">'武器'</span><span class="p">,)</span>
+<span class="n">FORGE_MAX_LEVEL</span> <span class="o">=</span> <span class="mi">20</span>               <span class="c1"># ← 每件装备 20 级封顶</span>
+<span class="n">BOSS_UNLOCK_LEVEL</span> <span class="o">=</span> <span class="n">FORGE_MAX_LEVEL</span>  <span class="c1"># 击败地牢之主的门槛：全部 6 件都到 20 级</span>
+<span class="n">SPAWN_LIMIT</span> <span class="o">=</span> <span class="mi">25</span>                   <span class="c1"># 召唤法阵每次上限</span>
+<span class="n">MONSTER_HP</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="n">BOSS_HP</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">BOSS_ATTACK</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">HERO_START_HP</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="n">REST_COST</span><span class="p">,</span> <span class="n">REST_HEAL</span><span class="p">,</span> <span class="n">REST_MAX</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">3</span>   <span class="c1"># 篝火：−5 经验回 10 血，每局 3 次</span>
+</code></pre></div>
+
+<p><strong>数值改动一览</strong>（相对原设计文档）：</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>原设计</th>
+<th>现在</th>
+<th>为什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>锻造</td>
+<td>一次性 −10 经验，6 件成型</td>
+<td>每件 <strong>20 级</strong>，每级 −10 经验</td>
+<td>你的新目标：闭环在"全 20 级"</td>
+</tr>
+<tr>
+<td>全套总账</td>
+<td>60 经验</td>
+<td>6 件 × 20 级 × 10 = <strong>1200 经验 = 1200 杀 = 48 批召唤</strong></td>
+<td>一局工具调用数大幅上升，见第 4 步 max_iters</td>
+</tr>
+<tr>
+<td>击败 Boss 条件</td>
+<td>护甲 ≥ 8 的数值推演</td>
+<td><strong>硬门槛</strong>：6 件全部 20 级才允许挑战成功，否则 Boss 直接免疫并给出缺口报告</td>
+<td>规则写在工具里（三铁律之一），模型骗不过 if</td>
+</tr>
+<tr>
+<td>Boss 战斗</td>
+<td>回合制 −(10−护甲)</td>
+<td>门槛未达标时<strong>跳过回合制</strong>，直接免疫 + 诊断；达标后一回合一结算</td>
+<td>避免为刷等级打 200 回合的日志洪水</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="2-gamestate">第 2 步 · 抄 GameState（世界状态）</h2>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">GameState</span><span class="p">:</span>
+    <span class="n">hp</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">HERO_START_HP</span>
+    <span class="n">xp</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">attack</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span>                              <span class="c1"># 木剑</span>
+    <span class="n">equipment</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>  <span class="c1"># slot -&gt; 当前等级（1~20）</span>
+    <span class="n">monsters_alive</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">boss_hp</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">BOSS_HP</span>
+    <span class="n">map_created</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">treasure_found</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">has_weapon</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">rest_used</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+
+
+<span class="n">STATE</span> <span class="o">=</span> <span class="n">GameState</span><span class="p">()</span>   <span class="c1"># 模块级单例：这就是"世界"本身，所有工具共享读写</span>
+</code></pre></div>
+
+<p><strong>自检 ②：</strong></p>
+<div class="codehilite"><pre><span></span><code>backend/.venv/bin/python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"import sys; sys.path.insert(0,'test'); import game_agent; print(game_agent.STATE.hp)"</span>
+</code></pre></div>
+
+<p>打印 <code>50</code> 才进下一步。</p>
+<hr />
+<h2 id="3-9">第 3 步 · 抄 9 个工具函数（完整代码，直接复制）</h2>
+<p>每个函数的 docstring 就是模型看到的说明书（<strong>变量提示词</strong>），函数体就是规则执法。整段抄：</p>
+<h3 id="19create_map">工具 1/9：create_map</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">create_map</span><span class="p">(</span><span class="n">theme</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">difficulty</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ToolResponse</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""创建暗影地牢的地图。</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        theme (`str`):</span>
+<span class="sd">            地牢主题，例如 "腐朽回廊"、"白骨大厅"、"深渊之眼"。</span>
+<span class="sd">        difficulty (`str`):</span>
+<span class="sd">            难度，可选："简单"、"普通"、"噩梦"。</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        `ToolResponse`:</span>
+<span class="sd">            地图描述与房间数；提示"传说深处藏有一个宝箱"。</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+    <span class="n">STATE</span><span class="o">.</span><span class="n">map_created</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">rooms</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">15</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'[tool] create_map(</span><span class="si">{}</span><span class="s1">, </span><span class="si">{}</span><span class="s1">)'</span><span class="p">,</span> <span class="n">theme</span><span class="p">,</span> <span class="n">difficulty</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ToolResponse</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="n">TextBlock</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">'地图已展开：【</span><span class="si">{</span><span class="n">theme</span><span class="si">}</span><span class="s1">】（难度：</span><span class="si">{</span><span class="n">difficulty</span><span class="si">}</span><span class="s1">），共 </span><span class="si">{</span><span class="n">rooms</span><span class="si">}</span><span class="s1"> 个房间。'</span>
+        <span class="sa">f</span><span class="s1">'传说深处藏有一个宝箱，找到它可获得额外奖励。'</span>
+    <span class="p">))])</span>
+</code></pre></div>
+
+<h3 id="29spawn_monsters">工具 2/9：spawn_monsters</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">spawn_monsters</span><span class="p">(</span><span class="n">count</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ToolResponse</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""在当前房间召唤怪物。</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        count (`int`):</span>
+<span class="sd">            想召唤的怪物数量，每次最多 25 只。超出会被直接拒绝，请分批召唤。</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        `ToolResponse`:</span>
+<span class="sd">            召唤结果与当前房间怪物总数。</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">STATE</span><span class="o">.</span><span class="n">map_created</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ToolResponse</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="n">TextBlock</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">'Error: 还没有地图，请先用 create_map 创建地牢。'</span>
+        <span class="p">))])</span>
+    <span class="k">if</span> <span class="n">count</span> <span class="o">&gt;</span> <span class="n">SPAWN_LIMIT</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ToolResponse</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="n">TextBlock</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">'Error: 召唤法阵每次最多拉来 </span><span class="si">{</span><span class="n">SPAWN_LIMIT</span><span class="si">}</span><span class="s1"> 只怪物（你要求 </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s1"> 只）。'</span>
+            <span class="sa">f</span><span class="s1">'请分批召唤，例如每次 </span><span class="si">{</span><span class="n">SPAWN_LIMIT</span><span class="si">}</span><span class="s1"> 只。'</span>
+        <span class="p">))])</span>
+    <span class="k">if</span> <span class="n">count</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ToolResponse</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="n">TextBlock</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">'Error: 至少召唤 1 只怪物。'</span>
+        <span class="p">))])</span>
+    <span class="n">STATE</span><span class="o">.</span><span class="n">monsters_alive</span> <span class="o">+=</span> <span class="n">count</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'[tool] spawn_monsters(</span><span class="si">{}</span><span class="s1">)'</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ToolResponse</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="n">TextBlock</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">'召唤成功！</span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s1"> 只怪物从阴影中爬出（HP </span><span class="si">{</span><span class="n">MONSTER_HP</span><span class="si">}</span><span class="s1">，会反击）。'</span>
+        <span class="sa">f</span><span class="s1">'当前房间怪物总数：</span><span class="si">{</span><span class="n">STATE</span><span class="o">.</span><span class="n">monsters_alive</span><span class="si">}</span><span class="s1">。'</span>
+    <span class="p">))])</span>
+</code></pre></div>
+
+<h3 id="39fight_monsters">工具 3/9：fight_monsters</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">fight_monsters</span><span class="p">(</span><span class="n">target</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ToolResponse</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""与当前房间的怪物战斗。</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        target (`str`):</span>
+<span class="sd">            "all" 表示清空全场怪物；或某只怪的编号如 "1"（暂只支持 "all"）。</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        `ToolResponse`:</span>
+<span class="sd">            击杀数、经验变化、HP 变化、剩余怪物数——一条播报里给全。</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">STATE</span><span class="o">.</span><span class="n">monsters_alive</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ToolResponse</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="n">TextBlock</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">'Error: 房间里没有怪物可打。请先用 spawn_monsters 召唤。'</span>
+        <span class="p">))]</span>
+        <span class="p">)</span>
+    <span class="n">killed</span> <span class="o">=</span> <span class="n">STATE</span><span class="o">.</span><span class="n">monsters_alive</span>
+    <span class="n">gain</span> <span class="o">=</span> <span class="n">killed</span>                                   <span class="c1"># 每杀 1 只 +1 经验</span>
+    <span class="n">STATE</span><span class="o">.</span><span class="n">xp</span> <span class="o">+=</span> <span class="n">gain</span>
+    <span class="c1"># 每只怪对勇者造成 max(0, 1 − 护甲) 点伤害（原设计公式）：</span>
+    <span class="c1"># 任一护甲部位锻造后护甲 ≥ 1 → 每只 0 伤害（安全期）；裸装刷怪刀刀见血（痛期）</span>
+    <span class="n">defense</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ARMOR_DEFENSE</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">ARMOR_DEFENSE</span> <span class="k">if</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">STATE</span><span class="o">.</span><span class="n">equipment</span><span class="p">)</span>
+    <span class="n">damage_taken</span> <span class="o">=</span> <span class="n">killed</span> <span class="o">*</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">defense</span><span class="p">)</span>
+    <span class="n">STATE</span><span class="o">.</span><span class="n">hp</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">STATE</span><span class="o">.</span><span class="n">hp</span> <span class="o">-</span> <span class="n">damage_taken</span><span class="p">)</span>
+    <span class="n">STATE</span><span class="o">.</span><span class="n">monsters_alive</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'[tool] fight_monsters(all) killed=</span><span class="si">{}</span><span class="s1">'</span><span class="p">,</span> <span class="n">killed</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ToolResponse</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="n">TextBlock</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">'战斗结束！击杀 </span><span class="si">{</span><span class="n">killed</span><span class="si">}</span><span class="s1"> 只，经验 +</span><span class="si">{</span><span class="n">gain</span><span class="si">}</span><span class="s1"> → 当前 </span><span class="si">{</span><span class="n">STATE</span><span class="o">.</span><span class="n">xp</span><span class="si">}</span><span class="s1">。'</span>
+        <span class="sa">f</span><span class="s1">'受到 </span><span class="si">{</span><span class="n">damage_taken</span><span class="si">}</span><span class="s1"> 点伤害，HP → </span><span class="si">{</span><span class="n">STATE</span><span class="o">.</span><span class="n">hp</span><span class="si">}</span><span class="s1">。'</span>
+        <span class="sa">f</span><span class="s1">'房间里已无怪物。'</span>
+        <span class="o">+</span> <span class="p">(</span><span class="s1">'（护甲 ≥ 1，安全期：刷怪零损伤）'</span> <span class="k">if</span> <span class="n">defense</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="k">else</span>
+           <span class="s1">'（⚠️ 裸装痛期：每杀 1 只掉 1 血，先锻一件护甲吧！）'</span><span class="p">)</span>
+    <span class="p">))])</span>
+</code></pre></div>
+
+<h3 id="49create_weapon">工具 4/9：create_weapon</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">create_weapon</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">material</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ToolResponse</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""领取一把初始武器（攻击力 10）。仅当手上没有武器时可用。</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name (`str`):</span>
+<span class="sd">            武器名字，例如 "木剑"。</span>
+<span class="sd">        material (`str`):</span>
+<span class="sd">            材质，例如 "橡木"、"铁木"。</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        `ToolResponse`:</span>
+<span class="sd">            武器名与攻击力；已有武器时拒绝。</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">STATE</span><span class="o">.</span><span class="n">has_weapon</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ToolResponse</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="n">TextBlock</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">'Error: 你已有武器（攻击力 </span><span class="si">{</span><span class="n">STATE</span><span class="o">.</span><span class="n">attack</span><span class="si">}</span><span class="s1">），不能重复领取。'</span>
+            <span class="sa">f</span><span class="s1">'想提升攻击力请用 forge_equipment 锻造"武器"部位。'</span>
+        <span class="p">))])</span>
+    <span class="n">STATE</span><span class="o">.</span><span class="n">has_weapon</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">STATE</span><span class="o">.</span><span class="n">attack</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'[tool] create_weapon(</span><span class="si">{}</span><span class="s1">, </span><span class="si">{}</span><span class="s1">)'</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">material</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ToolResponse</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="n">TextBlock</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">'你握住了 </span><span class="si">{</span><span class="n">material</span><span class="si">}</span><span class="s1">打造的「</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">」，攻击力 10。'</span>
+        <span class="sa">f</span><span class="s1">'想升到 18 并解锁 20 级成长，请用 forge_equipment 锻造"武器"部位。'</span>
+    <span class="p">))])</span>
+</code></pre></div>
+
+<h3 id="59forge_equipment">工具 5/9：forge_equipment（本案例最核心的工具）</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">forge_equipment</span><span class="p">(</span><span class="n">slot</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ToolResponse</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""把指定部位升 1 级（每件最高 20 级），消耗 10 经验值。锻造后立即穿戴。</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        slot (`str`):</span>
+<span class="sd">            装备部位，可选：肩甲 / 胸甲 / 鞋子 / 护腿 / 腰带 / 武器。</span>
+<span class="sd">            锻造武器后攻击力从 10 提升到 18。</span>
+<span class="sd">            **只有全部 6 件都升到 20 级，才有资格击败地牢之主。**</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        `ToolResponse`:</span>
+<span class="sd">            升级结果、当前等级、剩余经验、距"全 20 级"的总进度。</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">slot</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ARMOR_SLOTS</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ToolResponse</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="n">TextBlock</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">'Error: 部位「</span><span class="si">{</span><span class="n">slot</span><span class="si">}</span><span class="s1">」不合法，可选：</span><span class="si">{</span><span class="s2">"、"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ARMOR_SLOTS</span><span class="p">)</span><span class="si">}</span><span class="s1">。'</span>
+        <span class="p">))])</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">STATE</span><span class="o">.</span><span class="n">has_weapon</span> <span class="ow">and</span> <span class="n">slot</span> <span class="o">==</span> <span class="s1">'武器'</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ToolResponse</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="n">TextBlock</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">'Error: 你还没有武器，请先用 create_weapon 领取，再锻造升级。'</span>
+        <span class="p">))])</span>
+    <span class="k">if</span> <span class="n">STATE</span><span class="o">.</span><span class="n">xp</span> <span class="o">&lt;</span> <span class="n">FORGE_COST</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ToolResponse</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="n">TextBlock</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">'Error: 经验不足！升 1 级需要 </span><span class="si">{</span><span class="n">FORGE_COST</span><span class="si">}</span><span class="s1"> 点，当前只有 </span><span class="si">{</span><span class="n">STATE</span><span class="o">.</span><span class="n">xp</span><span class="si">}</span><span class="s1"> 点，'</span>
+            <span class="sa">f</span><span class="s1">'还差 </span><span class="si">{</span><span class="n">FORGE_COST</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">STATE</span><span class="o">.</span><span class="n">xp</span><span class="si">}</span><span class="s1"> 点。先去打怪攒经验吧！'</span>
+        <span class="p">))])</span>
+    <span class="n">level</span> <span class="o">=</span> <span class="n">STATE</span><span class="o">.</span><span class="n">equipment</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">slot</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">level</span> <span class="o">&gt;=</span> <span class="n">FORGE_MAX_LEVEL</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ToolResponse</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="n">TextBlock</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">'Error: </span><span class="si">{</span><span class="n">slot</span><span class="si">}</span><span class="s1"> 已是满级 </span><span class="si">{</span><span class="n">FORGE_MAX_LEVEL</span><span class="si">}</span><span class="s1"> 级，无需再锻。'</span>
+            <span class="sa">f</span><span class="s1">'把经验花在还没满级的部位上。'</span>
+        <span class="p">))])</span>
+
+    <span class="n">STATE</span><span class="o">.</span><span class="n">xp</span> <span class="o">-=</span> <span class="n">FORGE_COST</span>
+    <span class="n">level</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">STATE</span><span class="o">.</span><span class="n">equipment</span><span class="p">[</span><span class="n">slot</span><span class="p">]</span> <span class="o">=</span> <span class="n">level</span>
+    <span class="k">if</span> <span class="n">slot</span> <span class="o">==</span> <span class="s1">'武器'</span><span class="p">:</span>
+        <span class="n">STATE</span><span class="o">.</span><span class="n">attack</span> <span class="o">=</span> <span class="mi">18</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'锻造成功！武器升到 </span><span class="si">{</span><span class="n">level</span><span class="si">}</span><span class="s1"> 级，攻击力 18。'</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'锻造成功！</span><span class="si">{</span><span class="n">slot</span><span class="si">}</span><span class="s1"> 升到 </span><span class="si">{</span><span class="n">level</span><span class="si">}</span><span class="s1"> 级（护甲 +</span><span class="si">{</span><span class="n">ARMOR_DEFENSE</span><span class="p">[</span><span class="n">slot</span><span class="p">]</span><span class="si">}</span><span class="s1">）。'</span>
+
+    <span class="c1"># 全局进度播报：模型靠这段推算"还差多少"</span>
+    <span class="n">maxed</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">ARMOR_SLOTS</span> <span class="k">if</span> <span class="n">STATE</span><span class="o">.</span><span class="n">equipment</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">FORGE_MAX_LEVEL</span><span class="p">]</span>
+    <span class="n">total_levels</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">STATE</span><span class="o">.</span><span class="n">equipment</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">ARMOR_SLOTS</span><span class="p">)</span>
+    <span class="n">boss_ready</span> <span class="o">=</span> <span class="n">total_levels</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ARMOR_SLOTS</span><span class="p">)</span> <span class="o">*</span> <span class="n">FORGE_MAX_LEVEL</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'[tool] forge_equipment(</span><span class="si">{}</span><span class="s1">) -&gt; Lv</span><span class="si">{}</span><span class="s1">'</span><span class="p">,</span> <span class="n">slot</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ToolResponse</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="n">TextBlock</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">msg</span><span class="si">}</span><span class="s1"> 剩余经验 </span><span class="si">{</span><span class="n">STATE</span><span class="o">.</span><span class="n">xp</span><span class="si">}</span><span class="s1">。'</span>
+        <span class="sa">f</span><span class="s1">'总进度：</span><span class="si">{</span><span class="n">total_levels</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ARMOR_SLOTS</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">FORGE_MAX_LEVEL</span><span class="si">}</span><span class="s1"> 级'</span>
+        <span class="sa">f</span><span class="s1">'（已满级部位：</span><span class="si">{</span><span class="s2">"、"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">maxed</span><span class="p">)</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s2">"无"</span><span class="si">}</span><span class="s1">）。'</span>
+        <span class="o">+</span> <span class="p">(</span><span class="s1">'🏆 全部 20 级达成！你现在有资格挑战地牢之主了！'</span>
+           <span class="k">if</span> <span class="n">boss_ready</span> <span class="k">else</span>
+           <span class="sa">f</span><span class="s1">'记住：全部 6 件都到 </span><span class="si">{</span><span class="n">FORGE_MAX_LEVEL</span><span class="si">}</span><span class="s1"> 级才能击败地牢之主。'</span><span class="p">)</span>
+    <span class="p">))])</span>
+</code></pre></div>
+
+<h3 id="69query_status">工具 6/9：query_status</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">query_status</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ToolResponse</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""查看勇者的完整状态面板。</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        `ToolResponse`:</span>
+<span class="sd">            HP / 经验 / 攻击力 / 各部位等级 / 场上怪物 / Boss 状态 一览。</span>
+<span class="sd">    """</span>
+    <span class="n">equip_txt</span> <span class="o">=</span> <span class="s1">'、'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s1"> Lv</span><span class="si">{</span><span class="n">lv</span><span class="si">}</span><span class="s1">'</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">lv</span> <span class="ow">in</span> <span class="n">STATE</span><span class="o">.</span><span class="n">equipment</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="p">)</span> <span class="ow">or</span> <span class="s1">'（尚未锻造任何装备）'</span>
+    <span class="n">boss_ready</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">STATE</span><span class="o">.</span><span class="n">equipment</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">ARMOR_SLOTS</span><span class="p">)</span> \
+        <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ARMOR_SLOTS</span><span class="p">)</span> <span class="o">*</span> <span class="n">FORGE_MAX_LEVEL</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'[tool] query_status'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ToolResponse</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="n">TextBlock</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">'===== 勇者面板 =====</span><span class="se">\n</span><span class="s1">'</span>
+        <span class="sa">f</span><span class="s1">'HP：</span><span class="si">{</span><span class="n">STATE</span><span class="o">.</span><span class="n">hp</span><span class="si">}</span><span class="s1">    经验：</span><span class="si">{</span><span class="n">STATE</span><span class="o">.</span><span class="n">xp</span><span class="si">}</span><span class="s1">    攻击力：</span><span class="si">{</span><span class="n">STATE</span><span class="o">.</span><span class="n">attack</span><span class="si">}</span><span class="se">\n</span><span class="s1">'</span>
+        <span class="sa">f</span><span class="s1">'装备：</span><span class="si">{</span><span class="n">equip_txt</span><span class="si">}</span><span class="se">\n</span><span class="s1">'</span>
+        <span class="sa">f</span><span class="s1">'场上怪物：</span><span class="si">{</span><span class="n">STATE</span><span class="o">.</span><span class="n">monsters_alive</span><span class="si">}</span><span class="s1"> 只    地牢之主 HP：</span><span class="si">{</span><span class="n">STATE</span><span class="o">.</span><span class="n">boss_hp</span><span class="si">}</span><span class="se">\n</span><span class="s1">'</span>
+        <span class="sa">f</span><span class="s1">'挑战资格：</span><span class="si">{</span><span class="s2">"✅ 全 20 级已达成"</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">boss_ready</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s2">"❌ 尚未达成（全部 6 件都要 20 级）"</span><span class="si">}</span><span class="s1">'</span>
+    <span class="p">))])</span>
+</code></pre></div>
+
+<h3 id="79search_treasure">工具 7/9：search_treasure</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">search_treasure</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ToolResponse</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""在当前地图搜寻宝箱（每张地图只藏一个，找到后消失）。</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        `ToolResponse`:</span>
+<span class="sd">            奖励结果（随机 +15 经验 或 回满血）；没找到时给出提示。</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">STATE</span><span class="o">.</span><span class="n">map_created</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ToolResponse</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="n">TextBlock</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">'Error: 还没有地图，请先用 create_map 创建地牢。'</span>
+        <span class="p">))])</span>
+    <span class="k">if</span> <span class="n">STATE</span><span class="o">.</span><span class="n">treasure_found</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ToolResponse</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="n">TextBlock</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">'Error: 这张地图的宝箱已经被你搜刮过了。'</span>
+        <span class="p">))])</span>
+    <span class="n">STATE</span><span class="o">.</span><span class="n">treasure_found</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.5</span><span class="p">:</span>
+        <span class="n">STATE</span><span class="o">.</span><span class="n">xp</span> <span class="o">+=</span> <span class="mi">15</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'你撬开宝箱，里面是远古经验结晶！经验 +15 → 当前 </span><span class="si">{</span><span class="n">STATE</span><span class="o">.</span><span class="n">xp</span><span class="si">}</span><span class="s1">。'</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">STATE</span><span class="o">.</span><span class="n">hp</span> <span class="o">=</span> <span class="n">HERO_START_HP</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'你撬开宝箱，里面是一瓶生命药剂！HP 回满 → </span><span class="si">{</span><span class="n">STATE</span><span class="o">.</span><span class="n">hp</span><span class="si">}</span><span class="s1">。'</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'[tool] search_treasure'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ToolResponse</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="n">TextBlock</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">msg</span><span class="p">)])</span>
+</code></pre></div>
+
+<h3 id="89challenge_boss">工具 8/9：challenge_boss（门槛执法在这里）</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">challenge_boss</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ToolResponse</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""挑战地牢之主（HP 100）。</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        `ToolResponse`:</span>
+<span class="sd">            胜利 → 结算报告；未达成"全部 6 件 20 级"门槛 → 地牢之主免疫</span>
+<span class="sd">            所有伤害，并给出缺口报告（哪几件还差多少级）。</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">STATE</span><span class="o">.</span><span class="n">boss_hp</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ToolResponse</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="n">TextBlock</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">'地牢之主已被击败。本局已通关，无需再战。'</span>
+        <span class="p">))])</span>
+    <span class="n">total_levels</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">STATE</span><span class="o">.</span><span class="n">equipment</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">ARMOR_SLOTS</span><span class="p">)</span>
+    <span class="n">need</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ARMOR_SLOTS</span><span class="p">)</span> <span class="o">*</span> <span class="n">FORGE_MAX_LEVEL</span>
+    <span class="k">if</span> <span class="n">total_levels</span> <span class="o">&lt;</span> <span class="n">need</span><span class="p">:</span>
+        <span class="c1"># ← 规则执法：门槛未到，Boss 免疫，直接给可行动的诊断</span>
+        <span class="n">gaps</span> <span class="o">=</span> <span class="s1">'、'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s1"> Lv</span><span class="si">{</span><span class="n">STATE</span><span class="o">.</span><span class="n">equipment</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="si">}</span><span class="s1">→20'</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">ARMOR_SLOTS</span>
+            <span class="k">if</span> <span class="n">STATE</span><span class="o">.</span><span class="n">equipment</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">FORGE_MAX_LEVEL</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'[tool] challenge_boss -&gt; 门槛未达标'</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ToolResponse</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="n">TextBlock</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">'地牢之主免疫了你的攻击！'</span>
+            <span class="sa">f</span><span class="s1">'（装备总等级 </span><span class="si">{</span><span class="n">total_levels</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">need</span><span class="si">}</span><span class="s1">，未达成"全部 6 件 20 级"）</span><span class="se">\n</span><span class="s1">'</span>
+            <span class="sa">f</span><span class="s1">'缺口报告：</span><span class="si">{</span><span class="n">gaps</span><span class="si">}</span><span class="s1">。</span><span class="se">\n</span><span class="s1">'</span>
+            <span class="sa">f</span><span class="s1">'继续刷怪攒经验、锻造升级，等你全身 20 级再来。'</span>
+            <span class="sa">f</span><span class="s1">'（装备保留，经验保留，地牢之主在嘲笑你。）'</span>
+        <span class="p">))])</span>
+    <span class="c1"># 门槛达成：回合制结算，勇者必胜</span>
+    <span class="n">rounds</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="o">-</span><span class="n">BOSS_HP</span> <span class="o">//</span> <span class="n">STATE</span><span class="o">.</span><span class="n">attack</span><span class="p">)</span>      <span class="c1"># 向上取整需要的回合数</span>
+    <span class="n">STATE</span><span class="o">.</span><span class="n">boss_hp</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'[tool] challenge_boss -&gt; 胜利（</span><span class="si">{}</span><span class="s1"> 回合）'</span><span class="p">,</span> <span class="n">rounds</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ToolResponse</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="n">TextBlock</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">'⚔️ 最终决战！你的攻击力 </span><span class="si">{</span><span class="n">STATE</span><span class="o">.</span><span class="n">attack</span><span class="si">}</span><span class="s1">，'</span>
+        <span class="sa">f</span><span class="s1">'经过 </span><span class="si">{</span><span class="n">rounds</span><span class="si">}</span><span class="s1"> 个回合的鏖战，地牢之主轰然倒地！</span><span class="se">\n</span><span class="s1">'</span>
+        <span class="sa">f</span><span class="s1">'===== 通关结算 =====</span><span class="se">\n</span><span class="s1">'</span>
+        <span class="sa">f</span><span class="s1">'最终 HP：</span><span class="si">{</span><span class="n">STATE</span><span class="o">.</span><span class="n">hp</span><span class="si">}</span><span class="s1">    总等级：</span><span class="si">{</span><span class="n">total_levels</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">need</span><span class="si">}</span><span class="s1">    剩余经验：</span><span class="si">{</span><span class="n">STATE</span><span class="o">.</span><span class="n">xp</span><span class="si">}</span><span class="se">\n</span><span class="s1">'</span>
+        <span class="sa">f</span><span class="s1">'暗影地牢恢复了平静。恭喜你，AI 勇者「阿爪」！'</span>
+    <span class="p">))])</span>
+</code></pre></div>
+
+<h3 id="99rest_at_bonfire">工具 9/9：rest_at_bonfire</h3>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">rest_at_bonfire</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ToolResponse</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""在篝火旁休息：消耗 5 经验，回复 10 点 HP（每局最多 3 次）。</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        `ToolResponse`:</span>
+<span class="sd">            HP 变化与剩余次数；经验不足或次数用尽时拒绝。</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">STATE</span><span class="o">.</span><span class="n">rest_used</span> <span class="o">&gt;=</span> <span class="n">REST_MAX</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ToolResponse</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="n">TextBlock</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">'Error: 篝火今天已经休息过 </span><span class="si">{</span><span class="n">REST_MAX</span><span class="si">}</span><span class="s1"> 次，不能再休了。'</span>
+        <span class="p">))])</span>
+    <span class="k">if</span> <span class="n">STATE</span><span class="o">.</span><span class="n">xp</span> <span class="o">&lt;</span> <span class="n">REST_COST</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ToolResponse</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="n">TextBlock</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">'Error: 休息需要 </span><span class="si">{</span><span class="n">REST_COST</span><span class="si">}</span><span class="s1"> 经验，当前只有 </span><span class="si">{</span><span class="n">STATE</span><span class="o">.</span><span class="n">xp</span><span class="si">}</span><span class="s1"> 点。先去打怪。'</span>
+        <span class="p">))])</span>
+    <span class="n">STATE</span><span class="o">.</span><span class="n">xp</span> <span class="o">-=</span> <span class="n">REST_COST</span>
+    <span class="n">STATE</span><span class="o">.</span><span class="n">rest_used</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">STATE</span><span class="o">.</span><span class="n">hp</span> <span class="o">+=</span> <span class="n">REST_HEAL</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'[tool] rest_at_bonfire'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ToolResponse</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">[</span><span class="n">TextBlock</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">'text'</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">'你在篝火旁歇了一会儿：HP +</span><span class="si">{</span><span class="n">REST_HEAL</span><span class="si">}</span><span class="s1"> → </span><span class="si">{</span><span class="n">STATE</span><span class="o">.</span><span class="n">hp</span><span class="si">}</span><span class="s1">，'</span>
+        <span class="sa">f</span><span class="s1">'经验 −</span><span class="si">{</span><span class="n">REST_COST</span><span class="si">}</span><span class="s1"> → </span><span class="si">{</span><span class="n">STATE</span><span class="o">.</span><span class="n">xp</span><span class="si">}</span><span class="s1">。剩余次数：</span><span class="si">{</span><span class="n">REST_MAX</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">STATE</span><span class="o">.</span><span class="n">rest_used</span><span class="si">}</span><span class="s1">。'</span>
+    <span class="p">))]</span>
+</code></pre></div>
+
+<p><strong>自检 ③（裸调，不花 token）：</strong></p>
+<div class="codehilite"><pre><span></span><code>backend/.venv/bin/python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"</span>
+<span class="s2">import sys; sys.path.insert(0,'test'); import game_agent as g</span>
+<span class="s2">print(g.spawn_monsters(30).content[0]['text'])   # 期望：最多 25 只 的拒绝</span>
+<span class="s2">print(g.forge_equipment('胸甲').content[0]['text'])  # 期望：经验不足 的拒绝</span>
+<span class="s2">g.STATE.map_created = True</span>
+<span class="s2">g.spawn_monsters(25); print(g.fight_monsters('all').content[0]['text'])  # 期望：+25 经验</span>
+<span class="s2">print(g.challenge_boss().content[0]['text'])  # 期望：门槛未达 的免疫诊断</span>
+<span class="s2">"</span>
+</code></pre></div>
+
+<p>四条全符合预期，引擎就是好的。</p>
+<hr />
+<h2 id="4-build_agent">第 4 步 · 抄 build_agent（装配 + 注册）</h2>
+<div class="codehilite"><pre><span></span><code><span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># 组装 ReActAgent</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">build_agent</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">ReActAgent</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""创建暗影地牢勇者 agent「阿爪」。"""</span>
+    <span class="n">sys_prompt</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">'你是 AI 勇者「阿爪」，被召唤进暗影地牢，唯一目标：击败地牢之主（HP 100）。'</span>
+        <span class="s1">'你了解这个世界的法则：击杀一只怪物 +1 经验；锻造升 1 级装备消耗 10 经验，'</span>
+        <span class="s1">'每件装备最高 20 级；召唤法阵每次最多拉来 25 只怪。量入为出，祝你好运。'</span>
+        <span class="s1">'老猎人只留下一句忠告："孩子，攒够了再去见地牢之主——'</span>
+        <span class="s1">'全身 20 级，一件都别少。"'</span>
+    <span class="p">)</span>
+
+    <span class="n">toolkit</span> <span class="o">=</span> <span class="n">Toolkit</span><span class="p">()</span>
+    <span class="n">toolkit</span><span class="o">.</span><span class="n">register_tool_function</span><span class="p">(</span><span class="n">create_map</span><span class="p">)</span>          <span class="c1"># 1 创建地图</span>
+    <span class="n">toolkit</span><span class="o">.</span><span class="n">register_tool_function</span><span class="p">(</span><span class="n">spawn_monsters</span><span class="p">)</span>      <span class="c1"># 2 召唤怪物</span>
+    <span class="n">toolkit</span><span class="o">.</span><span class="n">register_tool_function</span><span class="p">(</span><span class="n">fight_monsters</span><span class="p">)</span>      <span class="c1"># 3 打怪</span>
+    <span class="n">toolkit</span><span class="o">.</span><span class="n">register_tool_function</span><span class="p">(</span><span class="n">create_weapon</span><span class="p">)</span>       <span class="c1"># 4 领武器</span>
+    <span class="n">toolkit</span><span class="o">.</span><span class="n">register_tool_function</span><span class="p">(</span><span class="n">forge_equipment</span><span class="p">)</span>     <span class="c1"># 5 锻造升级</span>
+    <span class="n">toolkit</span><span class="o">.</span><span class="n">register_tool_function</span><span class="p">(</span><span class="n">query_status</span><span class="p">)</span>        <span class="c1"># 6 状态面板</span>
+    <span class="n">toolkit</span><span class="o">.</span><span class="n">register_tool_function</span><span class="p">(</span><span class="n">search_treasure</span><span class="p">)</span>     <span class="c1"># 7 搜宝箱</span>
+    <span class="n">toolkit</span><span class="o">.</span><span class="n">register_tool_function</span><span class="p">(</span><span class="n">challenge_boss</span><span class="p">)</span>      <span class="c1"># 8 挑战 Boss</span>
+    <span class="n">toolkit</span><span class="o">.</span><span class="n">register_tool_function</span><span class="p">(</span><span class="n">rest_at_bonfire</span><span class="p">)</span>     <span class="c1"># 9 篝火休息</span>
+
+    <span class="k">return</span> <span class="n">ReActAgent</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">'阿爪'</span><span class="p">,</span>
+        <span class="n">sys_prompt</span><span class="o">=</span><span class="n">sys_prompt</span><span class="p">,</span>
+        <span class="n">model</span><span class="o">=</span><span class="n">OpenAIChatModel</span><span class="p">(</span>
+            <span class="n">model_name</span><span class="o">=</span><span class="n">DASHSCOPE_CHAT_MODEL</span><span class="p">,</span>
+            <span class="n">api_key</span><span class="o">=</span><span class="n">DASHSCOPE_API_KEY</span><span class="p">,</span>
+            <span class="n">stream</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">client_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">'base_url'</span><span class="p">:</span> <span class="n">DASHSCOPE_BASE_URL</span><span class="p">},</span>
+        <span class="p">),</span>
+        <span class="n">formatter</span><span class="o">=</span><span class="n">OpenAIChatFormatter</span><span class="p">(),</span>
+        <span class="n">toolkit</span><span class="o">=</span><span class="n">toolkit</span><span class="p">,</span>
+        <span class="n">long_term_memory</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">long_term_memory_mode</span><span class="o">=</span><span class="s1">'both'</span><span class="p">,</span>
+        <span class="n">compression_config</span><span class="o">=</span><span class="n">ReActAgent</span><span class="o">.</span><span class="n">CompressionConfig</span><span class="p">(</span>
+            <span class="n">enable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">agent_token_counter</span><span class="o">=</span><span class="n">OpenAITokenCounter</span><span class="p">(</span><span class="s1">'gpt-4o'</span><span class="p">),</span>
+            <span class="n">trigger_threshold</span><span class="o">=</span><span class="mi">12000</span><span class="p">,</span>
+            <span class="n">keep_recent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">enable_meta_tool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="c1"># 与咖啡馆 demo 的不同点 1：游戏工具全是写操作且顺序敏感，必须关并行</span>
+        <span class="n">parallel_tool_calls</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">plan_notebook</span><span class="o">=</span><span class="n">PlanNotebook</span><span class="p">(</span><span class="n">max_subtasks</span><span class="o">=</span><span class="mi">6</span><span class="p">),</span>
+        <span class="n">print_hint_msg</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="c1"># 与咖啡馆 demo 的不同点 2：一局约 50~60 次工具调用（1200 经验 ÷ 25/批 × 2</span>
+        <span class="c1"># + 120 次锻造 + 杂项），默认 10 会中途"总结陈词"弃赛</span>
+        <span class="n">max_iters</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span>
+        <span class="n">tts_model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span>
+</code></pre></div>
+
+<blockquote>
+<p><strong>max_iters 为什么是 90：</strong> 全 20 级 = 120 级锻造 + 48 批召唤 × 2（召唤+战斗）+ 领武器 + 面板等杂项 ≈ 120 + 96 + 5 ≈ <strong>220 次调用</strong>。
+如果中途触发 <code>_summarizing</code> 强制收工，就调大；<code>qwen3.7-max</code> 单局 220 轮对 context 是考验，compression_config 已兜底。
+想先小步验证：把 <code>FORGE_MAX_LEVEL</code> 临时改成 2（总账 12 经验），跑通一局再改回 20。</p>
+</blockquote>
+<hr />
+<h2 id="5-main">第 5 步 · 抄 main()（发起对局）</h2>
+<div class="codehilite"><pre><span></span><code><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">DASHSCOPE_API_KEY</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+            <span class="s1">'缺少 DASHSCOPE_API_KEY：请设置环境变量，或写入 backend/.env（本脚本会自动读取）。'</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">agent</span> <span class="o">=</span> <span class="n">build_agent</span><span class="p">()</span>
+
+    <span class="n">query</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">'进入暗影地牢，开始你的冒险。目标：击败地牢之主。'</span>
+        <span class="s1">'祝你好运，勇者阿爪。'</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'&gt;&gt;&gt; 召唤阵: </span><span class="si">{}</span><span class="s1">'</span><span class="p">,</span> <span class="n">query</span><span class="p">)</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">agent</span><span class="p">(</span><span class="n">Msg</span><span class="p">(</span><span class="s1">'user'</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="s1">'user'</span><span class="p">))</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="s1">''</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="n">block</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'text'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span> <span class="ow">or</span> <span class="p">[])</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">block</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">block</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'type'</span><span class="p">)</span> <span class="o">==</span> <span class="s1">'text'</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'&lt;&lt;&lt; 阿爪: </span><span class="si">{}</span><span class="s1">'</span><span class="p">,</span> <span class="n">text</span> <span class="ow">or</span> <span class="s1">'(空回复)'</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">'__main__'</span><span class="p">:</span>
+    <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</code></pre></div>
+
+<blockquote>
+<p>任务文案没有剧透最优解（没写"先刷 48 批再锻造"）——它只会自己算。</p>
+</blockquote>
+<hr />
+<h2 id="6">第 6 步 · 跑起来，观察</h2>
+<div class="codehilite"><pre><span></span><code>backend/.venv/bin/python<span class="w"> </span>test/game_agent.py
+</code></pre></div>
+
+<p>日志三种行的含义（与设计文档"5 个观察瞬间"对照）：</p>
+<table>
+<thead>
+<tr>
+<th>日志行</th>
+<th>对应循环里的什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>[tool] spawn_monsters(25)</code></td>
+<td>toolkit 真实执行</td>
+</tr>
+<tr>
+<td><code>[tool] forge_equipment(胸甲) -&gt; Lv7</code></td>
+<td>升级进度在推进</td>
+</tr>
+<tr>
+<td><code>Unsupported block type thinking</code></td>
+<td>模型思考块被 formatter 跳过——正常现象</td>
+</tr>
+</tbody>
+</table>
+<p><strong>重点观察：</strong>
+1. <strong>25 上限被拒</strong>后是否自己算出分批；
+2. <strong>经验不足被拒</strong>后是否转头刷怪；
+3. <strong>门槛未达冲 Boss</strong> 后是否读懂缺口报告回去补级；
+4. <strong>forge 返回里的总进度播报</strong>是否让它少调 query_status。</p>
+<hr />
+<h2 id="_1">常见翻车速查表</h2>
+<table>
+<thead>
+<tr>
+<th>症状</th>
+<th>断的线</th>
+<th>处方</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>一局跑一半模型"总结陈词"收工</td>
+<td>循环守卫</td>
+<td><code>max_iters</code> 调大（全 20 级需要 90+，见第 4 步）</td>
+</tr>
+<tr>
+<td>同时发多个 tool_call，状态错乱</td>
+<td>行动空间</td>
+<td>确认 <code>parallel_tool_calls=False</code> 生效</td>
+</tr>
+<tr>
+<td>挑战 Boss 一直失败但不补级</td>
+<td>观察质量</td>
+<td>challenge_boss 的缺口报告加粗"还差 X 级"</td>
+</tr>
+<tr>
+<td>填错参数（count 传字符串）</td>
+<td>工具 schema</td>
+<td>docstring 的 Args 段重写：类型+范围+例子</td>
+</tr>
+<tr>
+<td>ModuleNotFoundError</td>
+<td>环境</td>
+<td>仓库根目录 + <code>backend/.venv/bin/python</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="testgame_agentpy">完整文件顺序小结（自上而下拼起来就是 test/game_agent.py）</h2>
+<ol>
+<li>导入块 + 配置（第 0 步）</li>
+<li>规则常量（第 1 步）</li>
+<li><code>GameState</code> + <code>STATE</code>（第 2 步）</li>
+<li>9 个工具函数（第 3 步，顺序无所谓，建议按 1~9 排）</li>
+<li><code>build_agent()</code>（第 4 步）</li>
+<li><code>main()</code> + <code>__main__</code> 守卫（第 5 步）</li>
+</ol>
+<p>每一步的自检都过了再拼下一段。全部拼完、自检 ①~③ 全绿，就可以跑第 6 步看阿爪通关了。</p>
+</main>
+</body>
+</html>
