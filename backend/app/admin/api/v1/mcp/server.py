@@ -1,3 +1,6 @@
+# 作者：langjunnan
+# 开发时间：2025年7月23日
+
 from typing import Annotated
 
 from app.admin.schema.mcp import AdminMcpBaseDetail, AdminSearchMcpParam, GetAdminMcpDetail, UpdateMcpServerParam

@@ -1,4 +1,7 @@
 "use client"
+// 作者：langjunnan
+// 开发时间：2025年7月23日
+
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"

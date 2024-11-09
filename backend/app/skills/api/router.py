@@ -1,3 +1,6 @@
+# 作者：langjunnan
+# 开发时间：2025年7月23日
+
 from app.skills.api.v1 import router as v1_router
 from core.conf import settings
 from fastapi import APIRouter

@@ -1,3 +1,6 @@
+# 作者：langjunnan
+# 开发时间：2025年7月23日
+
 from typing import Any
 
 from app.admin.crud.crud_opera_log import opera_log_dao

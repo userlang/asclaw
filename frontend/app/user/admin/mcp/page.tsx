@@ -1,4 +1,7 @@
 "use client"
+// 作者：langjunnan
+// 开发时间：2025年7月23日
+
 
 import { McpDetailModal } from "@/components/mcp/mcp-detail-modal"
 import { McpEditModal } from "@/components/mcp/mcp-edit-modal"

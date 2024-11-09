@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# 作者：langjunnan
+# 开发时间：2025年7月23日
+
 # -*- coding: utf-8 -*-
 from app.task.celery import celery_app
 from app.task.schema.task import RunParam, TaskResult

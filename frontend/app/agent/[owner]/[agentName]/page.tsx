@@ -1,3 +1,6 @@
+// 作者：langjunnan
+// 开发时间：2025年7月23日
+
 import { notFound } from "next/navigation"
 import AgentDetailClient from "./page-client"
 import LayoutApp from "@/components/layout/layout-app"

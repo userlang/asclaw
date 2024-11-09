@@ -1,3 +1,6 @@
+# 作者：langjunnan
+# 开发时间：2025年7月23日
+
 from prometheus_client import Counter, Gauge, Histogram
 
 # 警告: 此值与以下位置强关联，修改必须同步更新，否则会导致 Grafana 指标数据查询失败：

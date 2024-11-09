@@ -1,3 +1,6 @@
+# 作者：langjunnan
+# 开发时间：2025年7月23日
+
 from collections import defaultdict, namedtuple
 from collections.abc import Sequence
 from decimal import Decimal

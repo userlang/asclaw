@@ -1,3 +1,6 @@
+# 作者：langjunnan
+# 开发时间：2025年7月23日
+
 from app.admin.api.v1.mcp.category import router as mcp_category_router
 from app.admin.api.v1.mcp.server import router as mcp_server_router
 from fastapi import APIRouter

@@ -1,3 +1,6 @@
+// 作者：langjunnan
+// 开发时间：2025年7月23日
+
 export const AUTH_DAILY_MESSAGE_LIMIT = 100
 export const APP_NAME = "AsClaw"
 export const APP_DOMAIN = "https://asclaw.cn"

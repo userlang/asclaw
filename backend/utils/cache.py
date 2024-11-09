@@ -1,3 +1,6 @@
+# 作者：langjunnan
+# 开发时间：2025年7月23日
+
 from collections.abc import Sequence
 
 from app.admin.model import role_menu, user_role

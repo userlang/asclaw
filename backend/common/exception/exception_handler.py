@@ -1,3 +1,6 @@
+# 作者：langjunnan
+# 开发时间：2025年7月23日
+
 from common.context import ctx
 from common.exception.errors import BaseExceptionError
 from common.i18n import i18n, t

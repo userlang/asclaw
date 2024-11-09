@@ -1,3 +1,6 @@
+# 作者：langjunnan
+# 开发时间：2025年7月23日
+
 from app.admin.api.v1.skill.category import router as skill_category_router
 from app.admin.api.v1.skill.server import router as skill_server_router
 from fastapi import APIRouter

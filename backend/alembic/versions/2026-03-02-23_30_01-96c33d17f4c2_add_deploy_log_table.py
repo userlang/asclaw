@@ -1,3 +1,6 @@
+# 作者：langjunnan
+# 开发时间：2025年7月23日
+
 """add deploy_log table
 
 Revision ID: 96c33d17f4c2
