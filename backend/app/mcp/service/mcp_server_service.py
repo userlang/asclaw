@@ -125,6 +125,18 @@ class McpServerService:
                 raise McpError(code=404, msg='MCP 不存在')
             mcp_server.avatar = avatar
 
+    @staticmethod
+    async def update_public(username: str, mcp_id: int, is_public: int) -> None:
+        """仅允许 MCP 创建者切换公开/私有；公开后出现在广场"""
+        async with async_db_session.begin() as db:
+            user = await user_dao.get_by_username(db, username)
+            if not user:
+                raise McpError(code=404, msg=f'用户 {username} 不存在')
+            mcp_server = await mcp_server_dao.get_mcp(db, mcp_id)
+            if not mcp_server or mcp_server.user_id != user.id:
+                raise McpError(code=404, msg='MCP 不存在')
+            mcp_server.is_public = 1 if is_public else 0
+
     # ---------- 广场凭证：MCP 为模板，token 各自配置 ----------
 
     # 凭证加密器：AES-CBC 真加密（ItsDangerous 只签名不加密，明文可解码）。

@@ -98,6 +98,7 @@ class McpBaseDetail(SchemaBase):
     # id: int = Field(description='id')
     # server_title: str = Field(description='名称')
     server_name: str = Field(description='mcp name')
+    server_title: str | None = Field(None, description='发布者起的名字，展示优先于 server_name')
     description: str | None = Field(None, description='描述')
     server_type: str = Field(description='类型')
     avatar: str | None = Field(description='avatar')
@@ -137,6 +138,7 @@ class McpSearchDetail(McpBaseDetail):
 
 class McpRecommendDetail(SchemaBase):
     server_name: str = Field(description='mcp name')
+    server_title: str | None = Field(None, description='发布者起的名字，展示优先于 server_name')
     description: str | None = Field(None, description='描述')
     server_type: str = Field(description='类型')
     owner: str = Field(description='owner')
@@ -192,6 +194,10 @@ class UpdateMcpCoverParam(SchemaBase):
 
 class UpdateMcpAvatarParam(SchemaBase):
     avatar: str | None = Field(None, max_length=512, description='头像 URL，置空恢复默认机器人头像')
+
+
+class UpdateMcpPublicParam(SchemaBase):
+    is_public: int = Field(description='是否公开：1 公开 / 0 私有')
 
 
 class McpCredentialHeadersParam(SchemaBase):

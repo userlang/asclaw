@@ -55,7 +55,7 @@ function Cover({ server, className }: { server: McpRecommendItem; className?: st
         {/* 专辑名排版 */}
         <div className="absolute inset-x-0 bottom-0 flex flex-col gap-0.5 p-[7%]">
           <span className="truncate text-sm font-bold uppercase tracking-widest text-white/95">
-            {server.server_name}
+            {server.server_title || server.server_name}
           </span>
           <span className="text-[0.65rem] uppercase tracking-[0.25em] text-white/60">
             {server.owner}
@@ -93,7 +93,7 @@ function Cover({ server, className }: { server: McpRecommendItem; className?: st
           {initials}
         </span>
         <span className="truncate text-[clamp(0.6rem,4.5cqw,0.9rem)] font-medium uppercase tracking-[0.2em] text-white/75">
-          {server.server_name}
+          {server.server_title || server.server_name}
         </span>
       </div>
     </div>

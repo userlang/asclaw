@@ -19,6 +19,7 @@ from app.mcp.schema.mcp import (
     McpCredentialHeadersParam,
     UpdateMcpAvatarParam,
     UpdateMcpCoverParam,
+    UpdateMcpPublicParam,
     detect_needs_auth,
 )
 from app.mcp.service.mcp_category_service import mcp_category_service
@@ -155,6 +156,17 @@ async def update_mcp_avatar(
 ) -> ResponseModel:
     """仅创建者可改；置空恢复默认机器人头像"""
     await mcp_server_service.update_avatar(request.user.username, mcp_id, obj.avatar)
+    return response_base.success()
+
+
+@router.put('/{mcp_id}/public', summary='切换 MCP 公开/私有', dependencies=[DependsJwtAuth])
+async def update_mcp_public(
+    request: Request,
+    mcp_id: Annotated[int, Path(description='MCP id')],
+    obj: UpdateMcpPublicParam,
+) -> ResponseModel:
+    """仅创建者可切换；公开后出现在广场"""
+    await mcp_server_service.update_public(request.user.username, mcp_id, obj.is_public)
     return response_base.success()
 
 

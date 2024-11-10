@@ -51,6 +51,7 @@ class MyMcpDetail(SchemaBase):
     server_name: str = Field(description='mcp name')
     description: str | None = Field(None, description='描述')
     server_type: str = Field(description='类型')
+    avatar: str | None = Field(None, description='MCP 头像 URL')
     is_public: bool | None = Field(None, description='是否公开')
     needs_auth: bool = Field(False, description='是否需要用户自备 token')
     user: GetUserDetail = Field(description='用户信息')
