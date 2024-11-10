@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { getMcpCategories, getMyMcps, McpCategory, McpSearchParams, McpSearchServerItem, MyMcpItem, PaginatedData, searchMcpServers } from "@/lib/mcp";
 import { cn } from "@/lib/utils";
 import { CaretLeft, CaretRight, CloudArrowDown, MagnifyingGlass } from "@phosphor-icons/react";
-import { Cloud, FolderOpen, Globe, KeyRound, MessageSquare, Monitor, Server, User, Wrench, Zap } from "lucide-react";
+import { Cloud, Globe, KeyRound, Monitor, Server, User, Wrench, Zap } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -319,7 +319,7 @@ export default function SearchPage() {
         {activeTab === "community" && (
           <>
             {isLoading && (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {Array.from({ length: 10 }).map((_, i) => (
                   <div
                     key={i}
@@ -343,13 +343,13 @@ export default function SearchPage() {
             )}
 
             {!isLoading && (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {mcpServers.map((server) => (
                   <Link
                     href={`/mcp/${server.owner}/${server.server_name}`}
                     key={`${server.owner}/${server.server_name}`}
                   >
-                    <div className="group border-border/50 bg-card hover:border-primary/30 hover:shadow-primary/5 relative flex h-[200px] flex-col rounded-xl border p-5 transition-all duration-300 hover:shadow-xl">
+                    <div className="group border-border/50 bg-card hover:border-primary/30 hover:shadow-primary/5 relative flex min-h-[200px] flex-col rounded-xl border p-5 transition-all duration-300 hover:shadow-xl">
                       <div className="mb-3 flex items-center gap-3">
                         <Avatar className="ring-border/50 h-9 w-9 flex-shrink-0 ring-1">
                           <AvatarImage
@@ -378,59 +378,37 @@ export default function SearchPage() {
                       >
                         {server.description}
                       </p>
-                      <div className="mt-3 flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                          <Badge variant="outline" className="gap-1 text-xs">
-                            {getServerTypeIcon(server.server_type)}
-                            {getServerTypeLabel(server.server_type)}
+                      <div className="mt-3 flex items-center gap-1.5">
+                        <Badge variant="outline" className="gap-1 text-xs">
+                          {getServerTypeIcon(server.server_type)}
+                          {getServerTypeLabel(server.server_type)}
+                        </Badge>
+                        {server.needs_auth ? (
+                          <Badge
+                            variant="outline"
+                            className="gap-1 border-amber-500/40 text-xs text-amber-600 dark:text-amber-400"
+                          >
+                            <KeyRound className="h-3 w-3" />
+                            需配置 Token
                           </Badge>
-                          {server.needs_auth ? (
-                            <Badge
-                              variant="outline"
-                              className="gap-1 border-amber-500/40 text-xs text-amber-600 dark:text-amber-400"
-                            >
-                              <KeyRound className="h-3 w-3" />
-                              需配置 Token
-                            </Badge>
-                          ) : (
-                            <Badge
-                              variant="outline"
-                              className="gap-1 border-emerald-500/40 text-xs text-emerald-600 dark:text-emerald-400"
-                            >
-                              <Zap className="h-3 w-3" />
-                              无需 Token
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="text-muted-foreground flex items-center gap-2 text-xs">
-                          {server.tools > 0 && (
-                            <span
-                              className="flex items-center gap-1"
-                              title="工具数量"
-                            >
-                              <Wrench className="h-3.5 w-3.5" />
-                              {server.tools}
-                            </span>
-                          )}
-                          {server.prompts > 0 && (
-                            <span
-                              className="flex items-center gap-1"
-                              title="提示词数量"
-                            >
-                              <MessageSquare className="h-3.5 w-3.5" />
-                              {server.prompts}
-                            </span>
-                          )}
-                          {server.resources > 0 && (
-                            <span
-                              className="flex items-center gap-1"
-                              title="资源数量"
-                            >
-                              <FolderOpen className="h-3.5 w-3.5" />
-                              {server.resources}
-                            </span>
-                          )}
-                        </div>
+                        ) : (
+                          <Badge
+                            variant="outline"
+                            className="gap-1 border-emerald-500/40 text-xs text-emerald-600 dark:text-emerald-400"
+                          >
+                            <Zap className="h-3 w-3" />
+                            无需 Token
+                          </Badge>
+                        )}
+                        {server.tools > 0 && (
+                          <span
+                            className="text-muted-foreground ml-auto flex flex-shrink-0 items-center gap-1 text-xs"
+                            title="工具数量"
+                          >
+                            <Wrench className="h-3 w-3" />
+                            {server.tools}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </Link>
@@ -472,7 +450,7 @@ export default function SearchPage() {
             ) : (
               <>
                 {isMyMcpLoading && (
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {Array.from({ length: 10 }).map((_, i) => (
                       <div
                         key={i}
@@ -495,13 +473,13 @@ export default function SearchPage() {
                 )}
 
                 {!isMyMcpLoading && (
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {myMcps.map((server) => (
                       <Link
                         href={`/mcp/${server.user.username}/${server.server_name}`}
                         key={server.id}
                       >
-                        <div className="group border-border/50 bg-card hover:border-primary/30 hover:shadow-primary/5 relative flex h-[160px] flex-col rounded-xl border p-5 transition-all duration-300 hover:shadow-xl">
+                        <div className="group border-border/50 bg-card hover:border-primary/30 hover:shadow-primary/5 relative flex min-h-[160px] flex-col rounded-xl border p-5 transition-all duration-300 hover:shadow-xl">
                           <div className="mb-3 flex items-center gap-3">
                             <div className="bg-muted ring-border/50 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-xs font-medium ring-1">
                               {server.server_name
@@ -536,7 +514,7 @@ export default function SearchPage() {
                           >
                             {server.description || "暂无描述"}
                           </p>
-                          <div className="mt-3 flex items-center gap-1.5">
+                          <div className="mt-3 flex flex-wrap items-center gap-x-1.5 gap-y-1.5">
                             <Badge
                               variant="outline"
                               className="gap-1 text-xs"

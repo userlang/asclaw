@@ -96,11 +96,14 @@ class CompileMcpService:
                     logger.warning(f'Fetch {name} failed: {e}')
                     results[name] = None
 
+            # 本地/远程以 transport 为准：stdio 是本地进程，sse/streamable_http 是远程服务
+            server_type = ServerType.local.name if transport == TransportType.stdio.name else ServerType.remote.name
+
             mcp_server = McpServer(
                 server_title=mcp_server_param.server_title,
                 server_name=mcp_name,
                 transport=transport,
-                server_type=ServerType.remote.name,
+                server_type=server_type,
                 compile_type=CompileType.package.name,
                 server_config=mcp_config.model_dump(mode='json'),
                 server_metadata=server_meta.model_dump(mode='json'),
