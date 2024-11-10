@@ -38,6 +38,7 @@ export interface SkillSearchItem {
 // ============ Skill Detail ============
 
 export interface SkillDetail {
+  id: number
   name: string
   title: string
   description: string | null

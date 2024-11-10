@@ -16,4 +16,6 @@ export type SearchResult = {
   label: string
   description: string
   avatar: string
+  id?: number
+  needs_auth?: boolean
 }

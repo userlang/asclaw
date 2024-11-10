@@ -9,6 +9,7 @@ import { createContext, useContext, useEffect, useState } from "react"
 
 export type UserProfile = {
   id: string
+  username: string
   nickname: string
   avatar: string
   email: string
@@ -59,6 +60,7 @@ export function UserProvider({
             console.log(`[UserData]: ${JSON.stringify(userData)}`)
             const profile: UserProfile = {
               id: userData.id || userData.nickname || "",
+              username: userData.username || "",
               nickname: userData.nickname || "",
               avatar: userData.avatar || "",
               email: userData.email || "",

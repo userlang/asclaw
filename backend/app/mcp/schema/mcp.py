@@ -11,12 +11,73 @@ from common.schema import SchemaBase
 from fastmcp.mcp_config import RemoteMCPServer, StdioMCPServer
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+# 鉴权相关 header 键名特征，用于判断 MCP 是否需要用户自备 token
+_AUTH_HEADER_PATTERN = ('authorization', 'token', 'api-key', 'apikey', 'api_key', 'secret', 'x-api-key', 'key')
+# URL query 中的敏感参数名（如 amap 的 ?key=xxx），全小写精确匹配
+_URL_SENSITIVE_PARAMS = ('key', 'apikey', 'api_key', 'api-key', 'token', 'access_token', 'secret', 'ak', 'appkey', 'app_key')
+
+# URL 参数键在凭证体系里的前缀：凭证存 {"url:key": "..."} 表示替换 URL query 中的 key 参数
+URL_PARAM_PREFIX = 'url:'
+
+
+def _url_sensitive_param_names(server_config: dict | None) -> list[str]:
+    """从 server_config.mcpServers 的 url query 中找出敏感参数名（按出现顺序去重）"""
+    from urllib.parse import parse_qsl, urlsplit
+
+    names: list[str] = []
+    if not server_config:
+        return names
+    for cfg in (server_config.get('mcpServers') or {}).values():
+        url = cfg.get('url') if isinstance(cfg, dict) else None
+        if not isinstance(url, str) or not url:
+            continue
+        try:
+            query = urlsplit(url).query
+        except ValueError:
+            continue
+        for name, _ in parse_qsl(query, keep_blank_values=True):
+            if name.lower() in _URL_SENSITIVE_PARAMS and name not in names:
+                names.append(name)
+    return names
+
+
+def detect_auth_header_keys(server_config: dict | None) -> list[str]:
+    """从 server_config.mcpServers 中提取需要用户配置的鉴权键名（不含值）
+
+    header 键原样返回（如 'Authorization'）；URL 敏感参数返回 'url:key' 形式。
+    """
+    keys: list[str] = []
+    if not server_config:
+        return keys
+    for cfg in (server_config.get('mcpServers') or {}).values():
+        headers = cfg.get('headers') if isinstance(cfg, dict) else None
+        if isinstance(headers, dict):
+            keys.extend(k for k, v in headers.items() if v and k not in keys)
+    keys.extend(f'{URL_PARAM_PREFIX}{name}' for name in _url_sensitive_param_names(server_config) if f'{URL_PARAM_PREFIX}{name}' not in keys)
+    return keys
+
+
+def detect_needs_auth(server_config: dict | None, transport: str | None = None) -> bool:
+    """remote 型 MCP 的 headers 或 URL query 含鉴权特征即视为需要用户自备 token；
+    stdio/local 型走 owner 部署的实例，对广场用户无凭证概念"""
+    if transport == 'stdio':
+        return False
+    if _url_sensitive_param_names(server_config):
+        return True
+    for key in detect_auth_header_keys(server_config):
+        if not key.startswith(URL_PARAM_PREFIX) and any(p in key.lower() for p in _AUTH_HEADER_PATTERN):
+            return True
+    return False
+
 
 class GetMcpDetail(SchemaBase):
     id: int = Field(description='id')
     server_title: str | None = Field(None, description='名称')
     description: str | None = Field(None, description='描述')
     server_type: str | None = Field(None, description='类型')
+    avatar: str | None = Field(None, description='头像 URL（未配置时前端回落默认机器人头像）')
+    cover: str | None = Field(None, description='封面图 URL（首页样式用）')
+    needs_auth: bool = Field(False, description='是否需要用户自备 token')
     server_metadata: Dict[str, Any] | None = Field(None, description='能力')
     tools: List[Dict[str, Any]] | None = Field(None, description='工具')
     prompts: List[Dict[str, Any]] | None = Field(None, description='提示词')
@@ -29,6 +90,7 @@ class GetMcpDetail(SchemaBase):
         envs = data.envs
         if envs:
             data.envs = {k: '******' for k in envs}
+        data.needs_auth = detect_needs_auth(data.server_config, data.transport)
         return data
 
 
@@ -53,11 +115,13 @@ class McpSearchDetail(McpBaseDetail):
     #     self.prompts = len(self.prompts) if self.prompts else 0
     #     self.resources = len(self.resources) if self.resources else 0
     #     return self
+    id: int = Field(description='id')
     tools: int = Field(description='工具数量')
     prompts: int = Field(description='提示词数量')
     resources: int = Field(description='资源数量')
     call_count: int = Field(description='调用量')
     owner: str = Field(description='owner')
+    needs_auth: bool = Field(False, description='是否需要用户自备 token')
 
     @model_validator(mode='before')
     @classmethod
@@ -67,6 +131,7 @@ class McpSearchDetail(McpBaseDetail):
         data['resources'] = len(data['resources']) if data['resources'] else 0
         data['call_count'] = 1889
         data['owner'] = data['user']['username']
+        data['needs_auth'] = detect_needs_auth(data['server_config'], data.get('transport'))
         return data
 
 
@@ -76,6 +141,7 @@ class McpRecommendDetail(SchemaBase):
     server_type: str = Field(description='类型')
     owner: str = Field(description='owner')
     cover: str | None = Field(None, description='封面图，仅用于首页样式展示')
+    needs_auth: bool = Field(False, description='是否需要用户自备 token')
     call_count: int = Field(description='调用量')
 
     @model_validator(mode='before')
@@ -83,6 +149,7 @@ class McpRecommendDetail(SchemaBase):
     def handel(cls, data: Any) -> Self:
         data.owner = data.user.username
         data.call_count = 1889
+        data.needs_auth = detect_needs_auth(data.server_config, data.transport)
         return data
 
 
@@ -121,6 +188,16 @@ class UpdateMcpServerParam(SchemaBase):
 
 class UpdateMcpCoverParam(SchemaBase):
     cover: str | None = Field(None, max_length=255, description='封面图 URL，置空清除封面')
+
+
+class UpdateMcpAvatarParam(SchemaBase):
+    avatar: str | None = Field(None, max_length=512, description='头像 URL，置空恢复默认机器人头像')
+
+
+class McpCredentialHeadersParam(SchemaBase):
+    """用户为广场 MCP 配置的自己的鉴权 headers，整体加密存储"""
+
+    headers: Dict[str, str] = Field(description='待配置的 headers，如 {"Authorization": "Bearer xxx"}')
 
 
 class McpServersWrapper(BaseModel):

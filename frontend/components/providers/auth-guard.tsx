@@ -8,7 +8,7 @@ import { usePathname, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
 /** 需要登录才能访问的路由前缀 */
-const PROTECTED_ROUTES = ["/chat", "/mcp", "/skills", "/build", "/user"]
+const PROTECTED_ROUTES = ["/chat", "/mcp", "/skills", "/agent", "/build", "/user"]
 
 /** 不需要登录的白名单（优先级高于 PROTECTED_ROUTES） */
 const PUBLIC_ROUTES = ["/enterprise/login", "/enterprise/apply"]
