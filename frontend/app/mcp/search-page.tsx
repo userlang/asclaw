@@ -42,7 +42,7 @@ export default function SearchPage() {
     useState<PaginatedData<MyMcpItem> | null>(null)
   const [myMcps, setMyMcps] = useState<MyMcpItem[]>([])
 
-  const pageSize = 12
+  const pageSize = 16
   const totalServers = searchResponse?.total || 0
   const totalPages = searchResponse?.total_pages || 1
   const myTotalPages = myMcpResponse?.total_pages || 1
@@ -361,8 +361,8 @@ export default function SearchPage() {
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {mcpServers.map((server) => (
                   <Link
-                    href={`/mcp/${server.owner}/${server.server_name}`}
-                    key={`${server.owner}/${server.server_name}`}
+                    href={`/mcp/${server.id}`}
+                    key={server.id}
                   >
                     <div className="group border-border/50 bg-card hover:border-primary/30 hover:shadow-primary/5 relative flex min-h-[200px] flex-col rounded-xl border p-5 transition-all duration-300 hover:shadow-xl">
                       <div className="mb-3 flex items-center gap-3">
@@ -493,7 +493,7 @@ export default function SearchPage() {
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {myMcps.map((server) => (
                       <Link
-                        href={`/mcp/${server.user.username}/${server.server_name}`}
+                        href={`/mcp/${server.id}`}
                         key={server.id}
                       >
                         <div className="group border-border/50 bg-card hover:border-primary/30 hover:shadow-primary/5 relative flex min-h-[160px] flex-col rounded-xl border p-5 transition-all duration-300 hover:shadow-xl">

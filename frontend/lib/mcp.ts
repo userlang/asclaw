@@ -52,6 +52,7 @@ export interface McpServerItem {
   id: number
   server_title: string
   server_name: string
+  owner?: string
   description: string
   avatar?: string | null
   cover?: string | null
@@ -271,28 +272,21 @@ export function getMcpServerFeed(): Promise<McpServerItem[]> {
   return http.get<McpServerItem[]>(API_ROUTE_MCP_SERVER_FEED)
 }
 
-/** 获取 MCP 服务器详情 */
-export function getMcpServerDetail(
-  username: string,
-  serverName: string
-): Promise<McpServerItem> {
-  return http.get<McpServerItem>(
-    `${API_ROUTE_MCP_SERVER_DETAIL}/${username}/${serverName}`
-  )
+/** 获取 MCP 服务器详情（按 id） */
+export function getMcpServerDetail(id: number | string): Promise<McpServerItem> {
+  return http.get<McpServerItem>(`${API_ROUTE_MCP_SERVER_DETAIL}/${id}`)
 }
 
-/** 调用 MCP 服务器工具 */
+/** 调用 MCP 服务器工具（按 id） */
 export function callMcpServerTool(
-  username: string,
-  serverName: string,
+  mcpId: number | string,
   toolName: string,
   args: Record<string, any>
 ): Promise<McpServerCallResult> {
   return http.post<McpServerCallResult>(
     `${API_ROUTE_MCPS}invoke`,
     {
-      username,
-      server_name: serverName,
+      mcp_id: mcpId,
       tool_name: toolName,
       arguments: args,
     }
@@ -313,6 +307,7 @@ export interface McpRecommendItem {
   server_type: "hosted" | "local"
   owner: string
   cover?: string | null
+  avatar?: string | null
   needs_auth?: boolean
   call_count: number
 }

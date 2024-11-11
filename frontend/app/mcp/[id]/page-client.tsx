@@ -43,11 +43,9 @@ import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
 export default function ServerDetailClient({
-  owner,
-  serverName,
+  id,
 }: {
-  owner: string
-  serverName: string
+  id: number
 }) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -77,7 +75,7 @@ export default function ServerDetailClient({
       try {
         setIsLoading(true)
         setError(null)
-        const response = await getMcpServerDetail(owner, serverName)
+        const response = await getMcpServerDetail(id)
         setServerDetail(response)
 
         // Initialize tool inputs with default values
@@ -123,12 +121,12 @@ export default function ServerDetailClient({
     }
 
     fetchServerDetail()
-  }, [owner, serverName])
+  }, [id])
 
   // 头像保存后局部刷新详情（不整页重载）
   const refreshDetail = async () => {
     try {
-      setServerDetail(await getMcpServerDetail(owner, serverName))
+      setServerDetail(await getMcpServerDetail(id))
     } catch {
       // 静默失败，保留旧详情
     }
@@ -221,8 +219,7 @@ export default function ServerDetailClient({
 
     try {
       const response = await callMcpServerTool(
-        owner,
-        serverName,
+        id,
         toolName,
         toolInputs[toolName] || {}
       )
@@ -295,11 +292,12 @@ export default function ServerDetailClient({
 
   // Generate a seed for the avatar based on the server title
   const avatarSeed = server.server_title.replace(/\s+/g, "-").toLowerCase()
-  const isMine = !!user && user.username === owner
+  const isMine = !!user && user.username === server.owner
 
   // 在线体验前拦截：需鉴权且未配置自己的凭证（个人/企业共享）时，先弹出凭证配置
   const handleTryOnline = async () => {
-    const chatUrl = `/chat?type=mcp&owner=${encodeURIComponent(owner)}&name=${encodeURIComponent(serverName)}`
+    // 聊天链路仍按 owner/name 绑定，取详情响应里的字段
+    const chatUrl = `/chat?type=mcp&owner=${encodeURIComponent(server.owner || "")}&name=${encodeURIComponent(server.server_name || "")}`
     if (server.needs_auth && !isMine && server.id) {
       try {
         const status = await getMcpCredentialStatus(server.id)
@@ -355,9 +353,9 @@ export default function ServerDetailClient({
                   <h1 className="truncate text-2xl font-bold text-foreground">
                     {server.server_title}
                   </h1>
-                  {server.user?.username && (
+                  {server.owner && (
                     <span className="text-sm text-muted-foreground">
-                      by {server.user.username}
+                      by {server.owner}
                     </span>
                   )}
                 </div>
