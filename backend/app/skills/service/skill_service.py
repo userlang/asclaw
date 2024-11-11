@@ -136,7 +136,11 @@ class SkillService:
                     SkillContent(skill_id=skill.id, file_path=f['file_path'], content=f['content'])
                 )
 
-            return skill
+        # 事务提交后用新会话回查并预加载 user/category 关联：
+        # 同一事务内刚 flush 的实例命中 identity map，selectinload 不会补关联，
+        # 直接返回会导致响应序列化取 data.user.username 失败
+        async with async_db_session() as db:
+            return await skill_dao.get_public_skill_by_user(db, name, user_id)
 
     @staticmethod
     async def delete_my_skill(*, user_id: int, skill_id: int) -> int:

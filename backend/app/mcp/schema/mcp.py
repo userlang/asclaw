@@ -72,6 +72,8 @@ def detect_needs_auth(server_config: dict | None, transport: str | None = None) 
 
 class GetMcpDetail(SchemaBase):
     id: int = Field(description='id')
+    server_name: str | None = Field(None, description='mcp name，聊天绑定 owner/name 用')
+    owner: str | None = Field(None, description='发布者 username')
     server_title: str | None = Field(None, description='名称')
     description: str | None = Field(None, description='描述')
     server_type: str | None = Field(None, description='类型')
@@ -91,6 +93,8 @@ class GetMcpDetail(SchemaBase):
         if envs:
             data.envs = {k: '******' for k in envs}
         data.needs_auth = detect_needs_auth(data.server_config, data.transport)
+        # owner 取发布者 username（查询需 selectinload(user)，否则 MissingGreenlet）
+        data.owner = data.user.username if data.user is not None else None
         return data
 
 
@@ -143,6 +147,7 @@ class McpRecommendDetail(SchemaBase):
     server_type: str = Field(description='类型')
     owner: str = Field(description='owner')
     cover: str | None = Field(None, description='封面图，仅用于首页样式展示')
+    avatar: str | None = Field(None, description='头像图，发布者配置，封面缺省时的展示图')
     needs_auth: bool = Field(False, description='是否需要用户自备 token')
     call_count: int = Field(description='调用量')
 
@@ -243,8 +248,7 @@ class AddMcpPackageParam(SchemaBase):
 
 
 class CallToolParam(SchemaBase):
-    username: str = Field(description='用户名')
-    server_name: str = Field(description='MCP server name')
+    mcp_id: int = Field(description='MCP id')
     tool_name: str = Field(description='工具名称')
     arguments: Optional[Dict[str, Any]] = Field(description='工具参数')
 

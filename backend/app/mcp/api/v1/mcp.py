@@ -129,12 +129,11 @@ async def delete_mcp_credential(
     return response_base.success()
 
 
-@router.get('/{username}/{server_name}', summary='mcp detail')
-async def get_mcp(
-    username: Annotated[str, Path(description='username')],
-    server_name: Annotated[str, Path(description='server_name')],
+@router.get('/{mcp_id}', summary='mcp 详情')
+async def get_mcp_detail(
+    mcp_id: Annotated[int, Path(description='MCP id')],
 ) -> ResponseSchemaModel[GetMcpDetail | None]:
-    result = await mcp_server_service.get_mcp_by_user(username=username, server_name=server_name)
+    result = await mcp_server_service.get_mcp_by_id(mcp_id)
     return response_base.success(data=result)
 
 
@@ -175,11 +174,7 @@ async def call_tool(
     request: Request,
     call_param: CallToolParam,
 ):
-    mcp_server = await mcp_server_service.get_mcp_by_user(
-        username=call_param.username, server_name=call_param.server_name
-    )
-    if not mcp_server:
-        raise errors.NotFoundError(msg='MCP服务器不存在')
+    mcp_server = await mcp_server_service.get_mcp_by_id(call_param.mcp_id)
 
     # 可见性：非本人只能调用公开 MCP
     is_owner = mcp_server.user_id == request.user.id
@@ -200,7 +195,7 @@ async def call_tool(
             )
         if not user_credential:
             raise McpError(code=403, msg='该 MCP 需要鉴权，请先在详情页配置你自己的 Token')
-        logger.info('invoke {}/{} uses {} credential', call_param.username, call_param.server_name, cred_source)
+        logger.info('invoke mcp#{} uses {} credential', call_param.mcp_id, cred_source)
         mcp_servers_cfg = {
             name: mcp_server_service.apply_credential_to_config(
                 mcp_server_service.sanitize_server_config(copy.deepcopy(cfg)), user_credential

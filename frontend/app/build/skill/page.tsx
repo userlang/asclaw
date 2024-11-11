@@ -31,7 +31,7 @@ export default function BuildSkillPage() {
 
   const handlePublish = async () => {
     if (!name.trim()) {
-      toast.error("请输入 Skill Name")
+      toast.error("请输入 Skill 名称")
       return
     }
     if (!title.trim()) {
@@ -78,18 +78,17 @@ export default function BuildSkillPage() {
             {/* Left: Form */}
             <div className="flex-1">
               <h1 className="mb-2 text-3xl font-bold text-foreground">
-                Import Skill
+                导入 Skill
               </h1>
               <p className="mb-8 text-muted-foreground">
-                Link a skill from GitHub (with a SKILL.md) or paste the content
-                directly to make it available on the platform.
+                关联 GitHub 上含 SKILL.md 的技能目录，或直接粘贴内容，发布到平台供智能体使用。
               </p>
 
               <div className="rounded-xl border border-border/50 bg-card p-6">
                 {/* Name */}
                 <div className="mb-6">
                   <label className="mb-2 block text-sm font-medium text-foreground">
-                    Skill Name *
+                    Skill 名称 *
                   </label>
                   <Input
                     value={name}
@@ -179,7 +178,7 @@ export default function BuildSkillPage() {
                   <Textarea
                     value={body}
                     onChange={(e) => setBody(e.target.value)}
-                    placeholder={"# My Skill\n\nYou are an expert at…\n\n## When to activate\n- …\n\n## Instructions\n1. …"}
+                    placeholder={"# 我的技能\n\n你擅长……\n\n## 触发时机\n- …\n\n## 指令\n1. …"}
                     rows={10}
                     className="font-mono text-sm"
                   />
@@ -195,10 +194,10 @@ export default function BuildSkillPage() {
                     {isSubmitting ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Publishing...
+                        发布中...
                       </>
                     ) : (
-                      "Publish"
+                      "发布"
                     )}
                   </Button>
                 </div>
@@ -221,7 +220,7 @@ export default function BuildSkillPage() {
                     className="gap-1.5"
                   >
                     <Eye className="h-3.5 w-3.5" />
-                    Preview
+                    预览
                   </Button>
                 </div>
 
@@ -230,17 +229,17 @@ export default function BuildSkillPage() {
                   {showPreview ? (
                     <div className="prose prose-sm dark:prose-invert max-w-none">
                       <h3>{title || "foo-bar"}</h3>
-                      <p>{description || "Does foo and bar for the user."}</p>
-                      <h4>When to activate</h4>
+                      <p>{description || "为用户处理 foo 和 bar 相关任务。"}</p>
+                      <h4>触发时机</h4>
                       <ul>
-                        <li>User asks about foo or bar</li>
-                        <li>User needs help with baz</li>
+                        <li>用户询问 foo 或 bar 相关问题</li>
+                        <li>用户需要 baz 方面的帮助</li>
                       </ul>
-                      <h4>Instructions</h4>
+                      <h4>指令</h4>
                       <ol>
-                        <li>First, do foo</li>
-                        <li>Then apply bar</li>
-                        <li>Return baz as the result</li>
+                        <li>先执行 foo</li>
+                        <li>再应用 bar</li>
+                        <li>返回 baz 作为结果</li>
                       </ol>
                     </div>
                   ) : (
@@ -256,16 +255,16 @@ export default function BuildSkillPage() {
                             <span className="text-orange-500">name:</span>{" "}
                             {name || "foo-bar"}{" "}
                             <span className="text-muted-foreground">
-                              &larr; lowercase, hyphens only, max 64 chars
+                              &larr; 小写字母与连字符，最长 64 字符
                             </span>
                           </p>
                           <p>
                             <span className="text-orange-500">description:</span>{" "}
                             {description
                               ? description.slice(0, 60) + (description.length > 60 ? "…" : "")
-                              : "Does foo and bar for the user."}{" "}
+                              : "为用户处理 foo 和 bar 相关任务。"}{" "}
                             <span className="text-muted-foreground">
-                              &larr; max 1024 chars
+                              &larr; 最长 1024 字符
                             </span>
                           </p>
                           <p className="mt-3 text-muted-foreground">
@@ -278,40 +277,40 @@ export default function BuildSkillPage() {
                       {/* Markdown Body */}
                       <div>
                         <p className="mb-2 font-sans text-xs text-muted-foreground">
-                          Markdown Body (skill instructions)
+                          Markdown 正文（技能指令）
                         </p>
                         <div className="rounded-lg bg-muted/50 p-4">
                           <p>
-                            You are an expert at foo. Help users with bar tasks.
+                            你精通 foo，帮用户处理 bar 相关任务。
                           </p>
                           <p className="mt-3 font-semibold">
-                            ## When to activate
+                            ## 触发时机
                           </p>
-                          <p>- User asks about foo or bar</p>
-                          <p>- User needs help with baz</p>
-                          <p className="mt-3 font-semibold">## Instructions</p>
-                          <p>1. First, do foo</p>
-                          <p>2. Then apply bar</p>
-                          <p>3. Return baz as the result</p>
+                          <p>- 用户询问 foo 或 bar 相关问题</p>
+                          <p>- 用户需要 baz 方面的帮助</p>
+                          <p className="mt-3 font-semibold">## 指令</p>
+                          <p>1. 先执行 foo</p>
+                          <p>2. 再应用 bar</p>
+                          <p>3. 返回 baz 作为结果</p>
                         </div>
                       </div>
 
                       {/* Optional directories */}
                       <div className="border-t border-border/50 pt-4">
                         <p className="mb-1 font-sans text-xs text-muted-foreground">
-                          Optional directories:
+                          可选目录：
                         </p>
                         <p className="text-muted-foreground">
                           <span className="text-foreground font-semibold">
                             scripts/
                           </span>{" "}
-                          &mdash; executable code agents can run
+                          &mdash; 智能体可执行的工具代码
                         </p>
                         <p className="text-muted-foreground">
                           <span className="text-foreground font-semibold">
                             references/
                           </span>{" "}
-                          &mdash; additional docs loaded on demand
+                          &mdash; 按需加载的补充文档
                         </p>
                       </div>
                     </div>
