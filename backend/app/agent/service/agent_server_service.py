@@ -14,7 +14,9 @@ from database.db import async_db_session
 from loguru import logger
 from sqlalchemy import Select
 
-_ITEM_RE = re.compile(r'^[\w.-]+/[\w.-]+$')
+# 引用只要求传输格式合法：单斜杠分隔、不含逗号（逗号是 ?mcps= 列表分隔符）、两段非空。
+# 名字本身允许空格/中文等字符（compile 只消毒 / \ ? # %，server_name 原样入库）
+_ITEM_RE = re.compile(r'^[^/,]+/[^/,]+$')
 
 
 class AgentError(errors.BaseExceptionError):
@@ -69,7 +71,7 @@ class AgentServerService:
             ('Skill', skills, AgentServerService._check_skill),
         ):
             for item in items:
-                if '/' not in item or not _ITEM_RE.match(item):
+                if not _ITEM_RE.match(item):
                     raise AgentError(msg=f'{label} 引用格式错误：{item}（应为 owner/name）')
                 await dao_getter(db, user_id, item)
 

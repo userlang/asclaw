@@ -2,6 +2,7 @@
 # 开发时间：2025年7月23日
 
 import asyncio
+import re
 
 from agentscope.mcp import HttpStatefulClient
 from app.admin.crud.crud_user import user_dao
@@ -58,6 +59,9 @@ class CompileMcpService:
         mcp_config = MCPConfig(mcpServers=mcp_servers)
         # 和serverInfo.name不一定一样
         mcp_name = list(mcp_config.mcpServers.keys())[0]
+        # server_name 用于详情路由 /api/v1/mcp/{username}/{server_name}，
+        # 配置键里的 / ? # % 等字符会拆断 URL 路径（如 “本地/云端文件处理”），统一替换成 -
+        server_name = re.sub(r'[/\\?#%]+', '-', mcp_name)
         server_cfg = mcp_config.mcpServers[mcp_name]
 
         transport = TransportType.stdio.name
@@ -101,7 +105,7 @@ class CompileMcpService:
 
             mcp_server = McpServer(
                 server_title=mcp_server_param.server_title,
-                server_name=mcp_name,
+                server_name=server_name,
                 transport=transport,
                 server_type=server_type,
                 compile_type=CompileType.package.name,
