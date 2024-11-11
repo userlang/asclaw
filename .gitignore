@@ -185,3 +185,6 @@ backend/tests/.agentscope_runtime/
 
 # dev launcher (start.sh/stop.sh) logs & pid files
 .run/
+
+# Claude Code local state
+.claude/
