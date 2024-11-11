@@ -13,7 +13,7 @@ import http from "@/lib/http"
 import { useTitlePolling } from "@/hooks/use-title-polling";
 import { cn } from "@/lib/utils";
 import { AccountModal } from "@/components/user/account-modal";
-import { Clock, FileText, HelpCircle, MessageSquare, Mic, Presentation, Settings, Sparkles, SquarePen, Table2, type LucideIcon } from "lucide-react";
+import { Clock, FileText, HelpCircle, MessageSquare, Mic, Presentation, Settings, Sparkles, SquarePen, Table2, Trash2 } from "lucide-react";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -27,6 +27,7 @@ type ChatSidebarProps = {
   activeThreadId?: string
   onSelectThread: (threadId: string) => void
   onNewChat: () => void
+  onThreadDeleted?: (threadId: string) => void
 }
 
 
@@ -197,11 +198,21 @@ function ScheduledTaskDialog({
 // ─── ChatSidebar ────────────────────────────────────────────────────────────
 
 export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(
-  function ChatSidebar({ activeThreadId, onSelectThread, onNewChat }, ref) {
+  function ChatSidebar({ activeThreadId, onSelectThread, onNewChat, onThreadDeleted }, ref) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [accountModalTab, setAccountModalTab] = useState("settings")
   const [threads, setThreads] = useState<ThreadItem[]>([])
   const [loading, setLoading] = useState(true)
+
+  const handleDeleteThread = useCallback(async (threadId: string) => {
+    try {
+      await http.delete(`/api/v1/agent/threads/${threadId}`)
+      setThreads((prev) => prev.filter((t) => t.thread_id !== threadId))
+      onThreadDeleted?.(threadId)
+    } catch {
+      // http interceptor already shows toast
+    }
+  }, [onThreadDeleted])
 
   const { startPolling } = useTitlePolling((threadId, title) => {
     setThreads((prev) =>
@@ -284,17 +295,28 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(
             </div>
           ) : (
             threads.map((thread) => (
-              <button
+              <div
                 key={thread.thread_id}
-                onClick={() => onSelectThread(thread.thread_id)}
                 className={cn(
-                  "hover:bg-accent flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm",
+                  "hover:bg-accent group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm",
                   activeThreadId === thread.thread_id && "bg-accent"
                 )}
               >
-                <MessageSquare className="h-4 w-4 shrink-0" />
-                <span className="truncate">{thread.chat_title}</span>
-              </button>
+                <button
+                  onClick={() => onSelectThread(thread.thread_id)}
+                  className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                >
+                  <MessageSquare className="h-4 w-4 shrink-0" />
+                  <span className="truncate">{thread.chat_title}</span>
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleDeleteThread(thread.thread_id) }}
+                  title="删除对话"
+                  className="text-muted-foreground hover:text-destructive shrink-0 opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
             ))
           )}
         </div>
