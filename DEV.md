@@ -13,13 +13,14 @@ source .venv/bin/activate          # Linux / macOS
 # .\.venv\Scripts\activate         # Windows
 
 # Copy env file
-cp deploy/.env.server .env
+cp .env.example .env
 
 # Run database migrations
 alembic upgrade head
 
-# Start the API server
-python run.py
+# Start the API server (granian, hot reload; `python run.py` fails — the
+# backend package needs the repo root on sys.path, which the CLI handles)
+asclaw run
 
 # Start Celery worker (separate terminal)
 asclaw celery worker
