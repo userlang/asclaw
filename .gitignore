@@ -188,3 +188,4 @@ backend/tests/.agentscope_runtime/
 
 # Claude Code local state
 .claude/
+CLAUDE.md
