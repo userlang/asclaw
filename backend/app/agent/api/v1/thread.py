@@ -30,6 +30,7 @@ from app.agent.model.chat import AgentChat
 from app.agent.schema.agent import RunBody
 from app.agent.service.agent_server_service import AgentError, agent_server_service
 from app.agent.service.llm_credential_service import LlmConfig, llm_credential_service
+from app.enterprise.service.enterprise_service import get_user_enterprise
 from app.mcp.schema.mcp import detect_needs_auth
 from app.mcp.service.mcp_server_service import mcp_server_service
 from app.skills.service.skill_service import skill_service
@@ -127,13 +128,22 @@ async def chat_endpoint(
     if need_title and first_query:
         asyncio.create_task(generate_title(thread_id, first_query, llm_config))
 
+    # 查看者企业：私有 skill/agent 的可见性判定用（公开 / 本人 / 同企业）
+    viewer_enterprise = await get_user_enterprise(db_session, request.user.id)
+    viewer_enterprise_id = viewer_enterprise.id if viewer_enterprise else None
+
     # type=agent 时：加载 agent 配置，把它的 mcps/skills 并入请求参数，system_prompt 作为主提示词
     agent_system_prompt: str | None = None
     agent_prologue: str | None = None
     if agent_name:  # 从 ?agent=owner/name 传入
         try:
             a_owner, a_name = agent_name.split('/', 1)
-            agent = await agent_server_service.get_public_agent_by_user(username=a_owner, agent_name=a_name)
+            agent = await agent_server_service.get_agent_for_viewer(
+                a_owner,
+                a_name,
+                viewer_user_id=request.user.id,
+                viewer_enterprise_id=viewer_enterprise_id,
+            )
             if agent:
                 agent_system_prompt = agent.system_prompt
                 agent_prologue = agent.prologue
@@ -195,6 +205,7 @@ async def chat_endpoint(
                 logger.warning('Failed to load MCP {}: {}', item, e)
 
     # 加载选中的技能：描述 + SKILL.md 正文拼入 sys_prompt，并累计使用次数
+    # 可见性与列表/详情一致：非本人只能用公开或本企业私有 skill，防止猜 owner/name 注入他人私有技能
     skill_parts: list[str] = []
     if skills:
         for item in skills.split(','):
@@ -203,7 +214,12 @@ async def chat_endpoint(
                 continue
             owner, skill_name = item.split('/', 1)
             try:
-                skill = await skill_service.get_skill_by_user(username=owner, skill_name=skill_name)
+                skill = await skill_service.get_skill_for_viewer(
+                    owner,
+                    skill_name,
+                    viewer_user_id=request.user.id,
+                    viewer_enterprise_id=viewer_enterprise_id,
+                )
                 if skill and skill.description:
                     part = f"Skill '{skill.title}': {skill.description}"
                     if skill.body:

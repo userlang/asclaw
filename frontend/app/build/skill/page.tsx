@@ -5,6 +5,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import LayoutApp from "@/components/layout/layout-app"
 import { getSkillCategories, publishSkill, type SkillCategory } from "@/lib/skill"
@@ -19,6 +20,7 @@ export default function BuildSkillPage() {
   const [categoryId, setCategoryId] = useState<string>("")
   const [sourceUrl, setSourceUrl] = useState("")
   const [body, setBody] = useState("")
+  const [isPublic, setIsPublic] = useState(false)
   const [categories, setCategories] = useState<SkillCategory[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
@@ -56,6 +58,7 @@ export default function BuildSkillPage() {
         category_id: categoryId ? Number(categoryId) : undefined,
         source_url: sourceUrl.trim() || undefined,
         body: body.trim() || undefined,
+        is_public: isPublic,
       })
       toast.success("Skill 发布成功")
       setTimeout(() => {
@@ -182,6 +185,17 @@ export default function BuildSkillPage() {
                     rows={10}
                     className="font-mono text-sm"
                   />
+                </div>
+
+                {/* Visibility */}
+                <div className="mb-8 flex items-center justify-between rounded-xl border border-border/50 bg-card px-5 py-4">
+                  <div>
+                    <p className="text-sm font-medium">公开到广场</p>
+                    <p className="text-muted-foreground text-xs">
+                      开启后所有企业可见；关闭仅本企业与你自己可见
+                    </p>
+                  </div>
+                  <Switch checked={isPublic} onCheckedChange={setIsPublic} />
                 </div>
 
                 {/* Publish Button */}

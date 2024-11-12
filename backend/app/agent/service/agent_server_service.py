@@ -7,6 +7,7 @@ from app.admin.crud.crud_user import user_dao
 from app.agent.crud.crud_agent_category import agent_category_dao
 from app.agent.crud.crud_agent_server import agent_server_dao
 from app.agent.model import AgentServer
+from app.enterprise.service.enterprise_service import get_user_enterprise
 from app.mcp.crud.crud_mcp_server import mcp_server_dao
 from app.skills.crud.crud_skill import skill_dao
 from common.exception import errors
@@ -33,8 +34,19 @@ class AgentError(errors.BaseExceptionError):
 
 class AgentServerService:
     @staticmethod
-    async def get_select(*, keyword: str, category_id: int) -> Select:
-        return await agent_server_dao.get_list(keyword=keyword, category_id=category_id)
+    async def get_select(
+        *,
+        keyword: str,
+        category_id: int,
+        viewer_user_id: int,
+        viewer_enterprise_id: int | None,
+    ) -> Select:
+        return await agent_server_dao.get_list(
+            keyword=keyword,
+            category_id=category_id,
+            viewer_user_id=viewer_user_id,
+            viewer_enterprise_id=viewer_enterprise_id,
+        )
 
     @staticmethod
     async def get_categories() -> list:
@@ -44,15 +56,21 @@ class AgentServerService:
             return result.scalars().all()
 
     @staticmethod
-    async def get_public_agent_by_user(username: str, agent_name: str) -> AgentServer | None:
-        """获取用户已公开的 agent 详情（详情页 + chat 配置加载共用）"""
+    async def get_agent_for_viewer(
+        username: str,
+        agent_name: str,
+        *,
+        viewer_user_id: int,
+        viewer_enterprise_id: int | None,
+    ) -> AgentServer | None:
+        """按可见性取 agent（公开 / 本人 / 同企业），详情页 + chat 配置加载共用"""
         async with async_db_session() as db:
             user = await user_dao.get_by_username(db, username)
             if not user:
-                # NotFoundError 继承 BaseExceptionMixin，不在全局异常处理器树里，
-                # 会变成无信息的 500；必须用 AgentError（BaseExceptionError 子类）
-                raise AgentError(code=404, msg='Agent不存在')
-            return await agent_server_dao.get_by_user_and_name(db, agent_name, user.id, is_public=True)
+                return None
+            return await agent_server_dao.get_by_user_and_name_visible(
+                db, agent_name, user.id, viewer_user_id, viewer_enterprise_id
+            )
 
     @staticmethod
     async def get_agent_by_user(username: str, agent_name: str) -> AgentServer | None:
@@ -85,8 +103,15 @@ class AgentServerService:
 
     @staticmethod
     async def _check_skill(db, user_id: int, item: str) -> None:
-        owner, skill_name = item.split('/', 1)
-        skill = await skill_dao.get_by_name_and_user(db, skill_name, user_id)
+        """skill 引用要求对作者可见：自己的，或同企业的（私有 skill 企业内共享）"""
+        owner_name, skill_name = item.split('/', 1)
+        owner = await user_dao.get_by_username(db, owner_name)
+        if not owner:
+            raise AgentError(msg=f'Skill 不存在或无权引用：{item}')
+        enterprise = await get_user_enterprise(db, user_id)
+        skill = await skill_dao.get_skill_visible_to(
+            db, skill_name, owner.id, user_id, enterprise.id if enterprise else None
+        )
         if not skill:
             raise AgentError(msg=f'Skill 不存在或无权引用：{item}')
 
@@ -108,13 +133,19 @@ class AgentServerService:
         is_public: bool = True,
         category_id: int | None = None,
     ) -> AgentServer:
-        """创建 agent：校验引用归属后落库"""
+        """创建 agent：校验引用归属后落库
+
+        企业归属按作者关联的已审核企业落定（无企业则 enterprise_id 为空，
+        私有数据仅作者本人可见）。
+        """
         mcps = mcps or []
         skills = skills or []
         async with async_db_session.begin() as db:
             user = await user_dao.get(db, user_id)
             if not user:
                 raise AgentError(msg='用户不存在')
+
+            enterprise = await get_user_enterprise(db, user_id)
 
             existing = await agent_server_dao.get_by_user_and_name(db, name, user_id)
             if existing:
@@ -144,6 +175,7 @@ class AgentServerService:
                 is_public=is_public,
                 category_id=category_id,
                 user_id=user_id,
+                enterprise_id=enterprise.id if enterprise else None,
             )
             # user 关系是 lazy viewonly，新建对象不会自动加载；响应序列化读 data.user.username，
             # 不补上的话 owner 返回空串 → 前端跳 /agent/me/{name} → 404 "Agent不存在"

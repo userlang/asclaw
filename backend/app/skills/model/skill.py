@@ -50,6 +50,9 @@ class AgentSkill(Base):
     # 用户逻辑外键
     user_id: Mapped[int | None] = mapped_column(BigInteger, default=None, index=True, comment='用户关联ID')
 
+    # 企业逻辑外键（发布时按作者关联的已审核企业落定；空=无企业归属的个人数据）
+    enterprise_id: Mapped[int | None] = mapped_column(BigInteger, default=None, index=True, comment='企业关联ID')
+
     # 只读关联（无 DB 约束，仅用于 ORM 查询加载）
     user: Mapped[User | None] = relationship(
         'User',

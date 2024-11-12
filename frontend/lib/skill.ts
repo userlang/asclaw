@@ -32,6 +32,7 @@ export interface SkillSearchItem {
   path: string
   owner: string
   avatar: string
+  is_public: boolean
   favorite_count: number
 }
 
@@ -50,6 +51,7 @@ export interface SkillDetail {
   owner: string
   avatar: string
   category: string | null
+  is_public: boolean
   favorite_count: number
 }
 
@@ -91,6 +93,8 @@ export interface SkillPublishParams {
   category_id?: number
   source_url?: string
   body?: string
+  /** 是否公开：true 所有企业可见 / false 仅本企业与作者可见（默认私有） */
+  is_public?: boolean
 }
 
 /** 发布（导入）Skill */

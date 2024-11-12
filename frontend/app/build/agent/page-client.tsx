@@ -31,7 +31,7 @@ export default function BuildAgentPage({ editAgent }: Props) {
   const [description, setDescription] = useState(editAgent?.description ?? "")
   const [systemPrompt, setSystemPrompt] = useState(editAgent?.system_prompt ?? "")
   const [prologue, setPrologue] = useState(editAgent?.prologue ?? "")
-  const [isPublic, setIsPublic] = useState(editAgent?.is_public ?? true)
+  const [isPublic, setIsPublic] = useState(editAgent?.is_public ?? false)
   const [enableSuggest, setEnableSuggest] = useState(editAgent?.enable_suggest ?? false)
   const [enableSearch, setEnableSearch] = useState(editAgent?.enable_search ?? false)
 
@@ -317,7 +317,7 @@ export default function BuildAgentPage({ editAgent }: Props) {
                   <div>
                     <p className="text-sm font-medium">公开到广场</p>
                     <p className="text-muted-foreground text-xs">
-                      关闭后仅自己可见（仍可通过链接聊天）
+                      开启后所有企业可见；关闭仅本企业与你自己可见
                     </p>
                   </div>
                   <Switch checked={isPublic} onCheckedChange={setIsPublic} />

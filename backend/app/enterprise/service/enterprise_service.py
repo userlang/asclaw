@@ -47,6 +47,22 @@ class EnterpriseError(BaseExceptionError):
         super().__init__(msg=msg)
 
 
+async def get_user_enterprise(db: AsyncSession, user_id: int) -> Enterprise | None:
+    """当前用户关联的已审核通过企业（企业成员体系扩展后仅需改此处查询）
+
+    供 MCP 凭证、LLM 密钥、skill/agent 企业隔离等模块共用。
+    """
+    result = await db.execute(select(Enterprise).where(Enterprise.user_id == user_id, Enterprise.status == 1))
+    return result.scalars().first()
+
+
+async def get_current_enterprise_id(request: Request) -> int | None:
+    """FastAPI 依赖：当前登录用户关联的已审核企业 id（无企业返回 None）"""
+    async with async_db_session() as db:
+        enterprise = await get_user_enterprise(db, request.user.id)
+    return enterprise.id if enterprise else None
+
+
 class EnterpriseService:
     @staticmethod
     async def apply(db: AsyncSession, obj: EnterpriseApplyParam) -> Enterprise:

@@ -28,6 +28,7 @@ export interface AgentSearchItem {
   avatar: string
   description: string
   owner: string
+  is_public: boolean
   tools: number
   skills: number
   knowledge: number
