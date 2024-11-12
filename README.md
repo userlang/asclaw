@@ -80,7 +80,7 @@ An MCP server flows end-to-end from **import** (parsing the pasted config), **co
 | **Frontend** | Next.js 15 App Router + React 19 + Tailwind CSS + Radix UI (shadcn) | App Router mirrors backend modules; Radix primitives with shadcn-style wrappers |
 | **Agent Frontend** | CopilotKit + @ag-ui/client | Chat UI wired to the backend AG-UI event stream; tool calls and reasoning rendered live |
 | **Database** | MySQL 8 (main + chat DB) + Redis 7 | Two-database isolation: business domain vs. agent chat memory; Redis doubles as cache, JWT session store and Celery broker |
-| **Deployment** | Docker Compose + Caddy 2 + Alibaba Cloud FC | Caddy as the unified gateway; MCP servers hosted serverlessly with on-demand scaling |
+| **Deployment** | Docker Compose + Alibaba Cloud FC | MCP servers hosted serverlessly on Alibaba Cloud FC with on-demand scaling; MySQL/Redis provisioned via Docker Compose |
 
 ## 📸 UI Tour
 
@@ -108,47 +108,96 @@ An MCP server flows end-to-end from **import** (parsing the pasted config), **co
 
 ## 🚀 Quick Start
 
+MySQL and Redis run as Docker containers; the API, Celery worker and frontend run
+directly on your machine.
+
+### Prerequisites
+
+| Tool | Version | Used for |
+|------|---------|----------|
+| Docker + Docker Compose | — | MySQL & Redis (containers) |
+| Python | 3.10+ | Backend |
+| uv | latest | Backend deps & venv |
+| Node.js | 20+ | Frontend |
+| pnpm | 9+ | Frontend deps |
+
+### 1. Start MySQL & Redis (containers)
+
 ```shell
-git clone https://gitee.com/lang_junnan_admin/asclaw.git
-cd asclaw
-
-# Edit service config as needed (database / Redis / DashScope, etc.)
-vim docker/config/.env.be.production
-vim docker/config/.env.fe.production
-
-# One-command start with prebuilt images (frontend + API + Celery + MySQL + Redis + Caddy)
+git clone https://gitee.com/lang_junnan_admin/asclaw.git && cd asclaw
 cd docker
-docker compose -f docker-compose-image.yaml up -d
+docker compose -f docker-compose.dev.yml up -d
+```
+
+On the **first** boot (empty data volume) MySQL auto-runs
+`docker/sql/mysql/init/*.sql` in filename order — creating the `asclaw` and
+`asclaw_chat` databases and seeding the admin `sys_menu` table. No manual SQL
+needed; these scripts don't re-run on later starts.
+
+### 2. Backend
+
+```shell
+cd backend
+uv sync && source .venv/bin/activate
+cp .env.example .env      # adjust DATABASE_PASSWORD / DASHSCOPE_API_KEY as needed
+alembic upgrade head      # apply all migrations (incremental schema changes)
+asclaw run --port 8081    # API on :8081 (Swagger at /docs)
+```
+
+### 3. Celery worker + beat (separate terminals; required for MCP compile/deploy)
+
+```shell
+asclaw celery worker      # runs compile/deploy tasks
+asclaw celery beat        # periodic: syncs deploy-log status every 30s
+```
+
+> They're plain foreground processes (no auto-restart in dev) — keep them running while
+> you use compile/deploy; if one dies, re-run `./start.sh` (it skips whatever's already up).
+
+### 4. Frontend
+
+```shell
+cd frontend
+pnpm install
+cp .env.example .env.local   # NEXT_PUBLIC_API_BASE_URL=http://localhost:8081
+pnpm dev -p 3001            # :3001
 ```
 
 Once up:
 
 | Service | URL |
 |---------|-----|
-| Web UI | <http://localhost:3000> |
-| API Docs (Swagger) | <http://localhost:8000/docs> |
+| Web UI | <http://localhost:3001> |
+| API Docs (Swagger) | <http://localhost:8081/docs> |
 | Celery Monitor (Flower) | <http://localhost:8555> (admin / 123456) |
 
-> 💡 The initial admin account, object storage and Function Compute credentials for MCP deployment are all configured in `.env.be.production`.
+### What runs automatically
 
-## 🧑‍💻 Local Development
+- **Docker init SQL** — `docker/sql/mysql/init/*.sql` runs on first MySQL boot
+  (empty volume): creates both databases + the `sys_menu` seed.
+- **Incremental migrations** — `alembic upgrade head` applies every script under
+  `backend/alembic/versions/` (each is an incremental schema change, e.g. the
+  `enterprise_id` columns). You don't run them individually.
+- **Missing-table auto-create** — on startup the API creates any missing table
+  (`create_tables`; create-only, never alters).
 
-[Development guide](DEV.md)
+> `backend/sql/*.sql` are idempotent *manual* DDL for an already-populated
+> database whose alembic history is out of sync — a fresh install doesn't need them.
+
+### One-command launcher (optional)
+
+Instead of steps 2–4, run the bundled launcher — it starts API + Celery worker/beat
++ Flower + frontend together (logs & pid files under `.run/`):
 
 ```shell
-# Backend (Python 3.10+ / uv)
-cd backend
-uv sync && source .venv/bin/activate
-alembic upgrade head
-asclaw run              # API :8000, hot reload
-
-# Async tasks (separate terminal; required for compile/deploy)
-asclaw celery worker
-
-# Frontend (pnpm)
-cd frontend
-pnpm install && pnpm dev    # :3000
+./start.sh    # API :8081 · Frontend :3001 · Flower :8555
+./stop.sh
 ```
+
+`./start.sh` uses the same ports as the manual steps above (so `frontend/.env.local`
+should point at `http://localhost:8081`).
+
+For migration authoring and pre-commit hooks, see [DEV.md](DEV.md).
 
 ## 🤝 Contributing
 

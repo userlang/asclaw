@@ -20,7 +20,7 @@ alembic upgrade head
 
 # Start the API server (granian, hot reload; `python run.py` fails — the
 # backend package needs the repo root on sys.path, which the CLI handles)
-asclaw run
+asclaw run --port 8081
 
 # Start Celery worker (separate terminal)
 asclaw celery worker
@@ -37,10 +37,10 @@ asclaw celery flower
 ```shell
 cd frontend
 pnpm install
-pnpm dev
+pnpm dev -p 3001
 ```
 
-The dev server starts at `http://localhost:3000`.
+The dev server starts at `http://localhost:3001`.
 
 ### Code Quality
 
