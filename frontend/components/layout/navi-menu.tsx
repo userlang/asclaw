@@ -13,8 +13,10 @@ import { useState } from "react";
 
 export function NaviMenu() {
     const pathname = usePathname()
-    const {user, isJwtAuthenticated} = useUser()
+    const {user, isJwtAuthenticated, userMenuPaths} = useUser()
     const isLoggedIn = !!user || isJwtAuthenticated
+    // 管理菜单是否可见由库里 sys_menu 决定（userMenuPaths 仅对 staff/superuser 填充）
+    const canReview = userMenuPaths.includes("/user/admin/review")
     const [open, setOpen] = useState(false)
 
     const linkClass =
@@ -61,7 +63,7 @@ export function NaviMenu() {
           >
             Agent
           </Link>
-          {isLoggedIn && (user?.is_staff || user?.is_superuser) && (
+          {isLoggedIn && canReview && (
             <Link
               href="/user/admin/review"
               className={
@@ -125,7 +127,7 @@ export function NaviMenu() {
                 >
                   Agent
                 </Link>
-                {isLoggedIn && (user?.is_staff || user?.is_superuser) && (
+                {isLoggedIn && canReview && (
                   <Link
                     href="/user/admin/review"
                     className={

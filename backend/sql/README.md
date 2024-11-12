@@ -16,7 +16,6 @@ docker exec -i mysql mysql -uroot -p'<密码见 backend/.env>' \
 
 | 脚本 | 说明 |
 | ---- | ---- |
-| `enterprise.sql` | 企业入驻表（enterprise），与 `app/enterprise/model/enterprise.py` 对应，含审核通过后关联的 `user_id` |
 | `asclaw_snapshot_2026-11-12.sql` | 开发库全量快照（最新）：`asclaw` 全部表结构 + 业务数据，`asclaw_chat` 仅表结构。**已脱敏**（用户/企业密码、LLM 与 MCP 凭证置空，`mcp_server.server_config`/`envs` 内嵌密钥及 `.env` 数据库密码替换为 `***`，含 `\"` 双重转义的 JSON 也覆盖）；运行日志与聊天数据（登录/操作日志、task_result、task_set_result、deploy_log、agent_chat）未导出。含 `DROP TABLE`，**勿对已有数据的库直接执行**；整文件导入（两个库一起建） |
 
 ## 重新导出快照
@@ -36,4 +35,4 @@ Docker 首次启动时由 MySQL 镜像按文件名顺序自动执行 `docker/sql
 （挂载为 `/docker-entrypoint-initdb.d`，见 `docker/docker-compose*.yml`）：
 
 - `01_create_databases.sql` — 创建 `asclaw`（业务库）与 `asclaw_chat`（聊天记录库）
-- `02_sys_menu.sql` — 后台菜单种子数据（表结构由后端启动时自动创建）
+- `02_sys_menu.sql` — 自建 `sys_menu` 表并写入后台菜单种子数据（与前端 `/user/admin/*` 页面一一对应；其余业务表仍由后端启动时自动创建）

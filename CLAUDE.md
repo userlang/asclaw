@@ -25,7 +25,7 @@ asclaw --sql PATH              # execute a SQL script in a transaction — SELEC
 - Tests: `backend/tests/` contains ad-hoc manual scripts (`async def main()` style, e.g. `dashscope_test.py`), not a pytest suite. Run individually with `python tests/<name>.py`. pytest deps are installed but no test suite exists.
 - Lint: ruff via pre-commit (`backend/.ruff.toml`, line-length 120). `pre-commit run --all-files`.
 
-DDL (CREATE/ALTER TABLE) execution options: alembic (`alembic revision --autogenerate` then `upgrade head`) or direct MySQL via `docker exec -i mysql mysql -uroot -p'<password from backend/.env>' asclaw < script.sql` (credentials also in `backend/.env`; example script in `backend/sql/enterprise.sql`).
+DDL (CREATE/ALTER TABLE) execution options: alembic (`alembic revision --autogenerate` then `upgrade head`) or direct MySQL via `docker exec -i mysql mysql -uroot -p'<password from backend/.env>' asclaw < script.sql` (credentials also in `backend/.env`).
 
 ### Frontend (from `frontend/`)
 
