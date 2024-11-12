@@ -130,7 +130,7 @@ class AgentServerService:
         enable_search: bool = False,
         enable_multimodal: bool = False,
         enable_suggest: bool = False,
-        is_public: bool = True,
+        is_public: bool = False,
         category_id: int | None = None,
     ) -> AgentServer:
         """创建 agent：校验引用归属后落库

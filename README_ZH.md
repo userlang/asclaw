@@ -97,12 +97,11 @@ flowchart LR
 <td width="50%" valign="top" align="center"><img src="imgs/6添加skills1284.png" width="100%" alt="导入 Skill"/><br/><sub>🧠 <b>导入 Skill</b> — 左侧表单 + 右侧 SKILL.md 规范速查，GitHub 目录自动抓取或在线编写</sub></td>
 </tr>
 <tr>
-<td width="50%" valign="top" align="center"><img src="imgs/7个人中心.png" width="100%" alt="个人中心"/><br/><sub>🔑 <b>个人中心</b> — 账户 / 我的 MCP / Skill / 部署记录 / 模型密钥一抽屉直达，BYOK 密钥掩码管理</sub></td>
+<td width="50%" valign="top" align="center"><img src="imgs/7个人中心.png" width="100%" alt="个人中心"/><br/><sub>🔑 <b>个人中心</b> — 账户 / 我的 MCP / Skill / 部署记录 / 模型密钥一抽屉直达，BYOK 密钥掩码管理</sub><br/><br/><img src="imgs/9agent聊天开始.png" width="100%" alt="Agent 聊天"/><br/><sub>💬 <b>Agent 聊天</b> — 左栏多会话历史，@ 智能体即问即答，AI 自动生成会话标题</sub></td>
 <td width="50%" valign="top" align="center"><img src="imgs/8创建agent1284.png" width="100%" alt="创建 Agent"/><br/><sub>🤖 <b>创建 Agent</b> — 系统提示词 + 开场白 + 勾选绑定 MCP/Skill + 能力开关，所见即所得的编排</sub></td>
 </tr>
 <tr>
-<td width="50%" valign="top" align="center"><img src="imgs/9agent聊天开始.png" width="100%" alt="Agent 聊天"/><br/><sub>💬 <b>Agent 聊天</b> — 左栏多会话历史，@ 智能体即问即答，AI 自动生成会话标题</sub></td>
-<td width="50%" valign="top" align="center"><img src="imgs/10agent聊天过程.png" width="100%" alt="工具调用过程"/><br/><sub>⚡ <b>工具调用可视化</b> — 天气/地理编码/车票查询调用链全程展开，最终输出结构化出行报告</sub></td>
+<td colspan="2" valign="top" align="center"><img src="imgs/10agent聊天过程.png" width="100%" alt="工具调用过程"/><br/><sub>⚡ <b>工具调用可视化</b> — 天气/地理编码/车票查询调用链全程展开，最终输出结构化出行报告</sub></td>
 </tr>
 </table>
 

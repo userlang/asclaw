@@ -97,13 +97,13 @@ An MCP server flows end-to-end from **import** (parsing the pasted config), **co
 <td width="50%" valign="top" align="center"><img src="imgs/6添加skills1284.png" width="100%" alt="Import Skill"/><br/><sub>🧠 <b>Import Skill</b> — form on the left, SKILL.md spec cheatsheet on the right; fetch from GitHub or write inline</sub></td>
 </tr>
 <tr>
-<td width="50%" valign="top" align="center"><img src="imgs/7个人中心.png" width="100%" alt="Personal Center"/><br/><sub>🔑 <b>Personal Center</b> — account / my MCP / skills / deploy logs / model keys in one drawer; masked BYOK key management</sub></td>
+<td width="50%" valign="top" align="center"><img src="imgs/7个人中心.png" width="100%" alt="Personal Center"/><br/><sub>🔑 <b>Personal Center</b> — account / my MCP / skills / deploy logs / model keys in one drawer; masked BYOK key management</sub><br/><br/><img src="imgs/9agent聊天开始.png" width="100%" alt="Agent Chat"/><br/><sub>💬 <b>Agent Chat</b> — multi-session history in the sidebar, @-mention an agent and ask away; titles auto-generated</sub></td>
 <td width="50%" valign="top" align="center"><img src="imgs/8创建agent1284.png" width="100%" alt="Create Agent"/><br/><sub>🤖 <b>Create Agent</b> — system prompt + prologue + MCP/Skill binding + capability toggles, WYSIWYG orchestration</sub></td>
 </tr>
 <tr>
-<td width="50%" valign="top" align="center"><img src="imgs/9agent聊天开始.png" width="100%" alt="Agent Chat"/><br/><sub>💬 <b>Agent Chat</b> — multi-session history in the sidebar, @-mention an agent and ask away; titles auto-generated</sub></td>
-<td width="50%" valign="top" align="center"><img src="imgs/10agent聊天过程.png" width="100%" alt="Tool-call Visualization"/><br/><sub>⚡ <b>Tool-call Visualization</b> — weather / geocoding / ticket-lookup chain fully expanded, final structured trip report</sub></td>
+<td colspan="2" valign="top" align="center"><img src="imgs/10agent聊天过程.png" width="100%" alt="Tool-call Visualization"/><br/><sub>⚡ <b>Tool-call Visualization</b> — weather / geocoding / ticket-lookup chain fully expanded, final structured trip report</sub></td>
 </tr>
+
 </table>
 
 ## 🚀 Quick Start

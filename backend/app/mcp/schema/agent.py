@@ -94,7 +94,7 @@ class PublishAgentParam(SchemaBase):
     enable_search: bool = Field(False, description='联网搜索')
     enable_multimodal: bool = Field(False, description='多模态')
     enable_suggest: bool = Field(False, description='问题建议')
-    is_public: bool = Field(True, description='是否公开')
+    is_public: bool = Field(False, description='是否公开：True 所有企业可见 / False 仅本企业与作者可见')
     category_id: int | None = Field(None, description='分类ID')
 
 
