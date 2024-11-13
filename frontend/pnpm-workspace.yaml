@@ -1,0 +1,12 @@
+# pnpm 10+ 的配置文件：原 package.json 中的 "pnpm" 字段已不再被读取，设置统一放这里
+overrides:
+  "@ag-ui/client": "0.0.43"
+  "@ag-ui/core": "0.0.43"
+  "@ag-ui/encoder": "0.0.43"
+
+# 允许执行构建脚本的依赖（pnpm 11+ 用 allowBuilds 映射，旧的 onlyBuiltDependencies 不再生效）
+allowBuilds:
+  "@scarf/scarf": true
+  "@tailwindcss/oxide": true
+  sharp: true
+  unrs-resolver: true
