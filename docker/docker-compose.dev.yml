@@ -12,8 +12,8 @@ services:
       TZ: Asia/Shanghai
     volumes:
       - asclaw_dev_mysql:/var/lib/mysql
-      # Auto-run on first boot (empty volume): creates `asclaw` + `asclaw_chat`
-      # databases and seeds the admin `sys_menu` table.
+      # Auto-run on first boot (empty volume): 01_schema.sql creates both
+      # databases + all tables; 02_data.sql seeds menus / admin / sample data.
       - ./sql/mysql/init:/docker-entrypoint-initdb.d
     command:
       --default-authentication-plugin=mysql_native_password
