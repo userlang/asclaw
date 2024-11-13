@@ -15,9 +15,7 @@ export const API_ROUTE_MCP_ADMIN_CATEGORY_CREATE = "/api/v1/admin/mcp/categories
 export const API_ROUTE_MCP_DEPLOY_PACKAGE = "/api/v1/mcp/deploy/package"
 export const API_ROUTE_MY_DEPLOY_LOGS = "/api/v1/mcp/deploy/logs"
 export const API_ROUTE_ADMIN_DEPLOY_LOGS = "/api/v1/admin/deploy/logs"
-export const API_ROUTE_OAUTH_USER = "/api/v1/admin/oauth2/user/me"
 export const API_ROUTE_AUTH_ME = "/api/v1/admin/auth/me"
-export const API_ROUTE_GOOGLE_OAUTH2_LOGIN = "/api/v1/admin/oauth/google"
 
 // Agent
 export const API_ROUTE_AGENTS = "/api/v1/agent/"

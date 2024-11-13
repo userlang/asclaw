@@ -47,15 +47,6 @@ class AddUserParam(AuthSchemaBase):
     roles: list[int] = Field(default=[], description='角色 ID 列表')
 
 
-class AddOAuth2UserParam(AuthSchemaBase):
-    """添加 OAuth2 用户参数"""
-
-    password: str | None = Field(None, description='密码')
-    nickname: str | None = Field(None, description='昵称')
-    email: CustomEmailStr | None = Field(None, description='邮箱')
-    avatar: HttpUrl | None = Field(None, description='头像地址')
-
-
 class UserInfoSchemaBase(SchemaBase):
     """用户信息基础模型"""
 

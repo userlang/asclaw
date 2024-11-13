@@ -120,16 +120,6 @@ class Settings(BaseSettings):
     COOKIE_REFRESH_TOKEN_KEY: str = 'asclaw_refresh_token'
     COOKIE_REFRESH_TOKEN_EXPIRE_SECONDS: int = 60 * 60 * 24 * 7  # 7 天
 
-    # OAuth2
-    # google oauth
-    OAUTH2_GOOGLE_CLIENT_ID: str = ''
-    OAUTH2_GOOGLE_CLIENT_SECRET: str = ''
-    OAUTH2_GOOGLE_REDIRECT_URI: str = ''
-
-    OAUTH2_FRONTEND_LOGIN_REDIRECT_URI: str
-    OAUTH2_STATE_REDIS_PREFIX: str = 'asclaw:oauth2:state'
-    OAUTH2_STATE_EXPIRE_SECONDS: int = 180  # 3 分钟
-
     # 登录
     LOGIN_CAPTCHA_REDIS_PREFIX: str = 'asclaw:login:captcha'
 
@@ -218,7 +208,6 @@ class Settings(BaseSettings):
         '/redoc',
         '/openapi',
         f'{FASTAPI_API_V1_PATH}/auth/login/swagger',
-        f'{FASTAPI_API_V1_PATH}/oauth2/linux-do/callback',
     ]
     OPERA_LOG_ENCRYPT_TYPE: int = 1  # 0: AES (性能损耗); 1: md5; 2: ItsDangerous; 3: 不加密, others: 替换为 ******
     OPERA_LOG_REDACT_KEYS: list[str] = [
