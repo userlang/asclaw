@@ -130,9 +130,27 @@ docker compose -f docker-compose.dev.yml up -d
 ```
 
 On the **first** boot (empty data volume) MySQL auto-runs
-`docker/sql/mysql/init/*.sql` in filename order — creating the `asclaw` and
-`asclaw_chat` databases and seeding the admin `sys_menu` table. No manual SQL
-needed; these scripts don't re-run on later starts.
+`docker/sql/mysql/init/*.sql` in filename order:
+
+- `01_schema.sql` — creates the `asclaw` and `asclaw_chat` databases and **all tables**
+  (idempotent; also stamps `alembic_version` at the current migration head)
+- `02_data.sql` — seeds the admin `sys_menu` table, the default admin account and
+  business data (17 MCP servers, 2 agents, 2 skills)
+
+No manual SQL needed; these scripts don't re-run on later starts.
+
+> ⚠️ **Heads-up**: the scripts only auto-run when the data volume is **empty**. If you redo
+> the quick start by deleting just the containers/images, the old volume survives and MySQL
+> **silently skips** the init scripts — leaving you with an empty database. To start truly
+> from scratch, remove the volume too (this wipes all data in it):
+>
+> ```shell
+> docker compose -f docker-compose.dev.yml down -v   # remove containers + volume
+> docker compose -f docker-compose.dev.yml up -d     # empty volume → init scripts run
+> ```
+>
+> Prefer to keep your data? Keep the volume and run the two scripts manually as shown in
+> the "existing data volume" section below.
 
 ### 2. Backend
 
@@ -140,14 +158,32 @@ needed; these scripts don't re-run on later starts.
 cd backend
 uv sync && source .venv/bin/activate
 cp .env.example .env      # adjust DATABASE_PASSWORD / DASHSCOPE_API_KEY as needed
-alembic upgrade head      # apply all migrations (incremental schema changes)
 asclaw run --port 8081    # API on :8081 (Swagger at /docs)
 ```
+
+Database initialization is already done by step 1 (fresh volume). If you're reusing an
+**existing** data volume (e.g. from an earlier quick start), run the two scripts once —
+they're idempotent and never drop data:
+
+```shell
+docker exec -i mysql mysql -uroot -p'<DATABASE_PASSWORD>' --default-character-set=utf8mb4 \
+  < docker/sql/mysql/init/01_schema.sql
+docker exec -i mysql mysql -uroot -p'<DATABASE_PASSWORD>' --default-character-set=utf8mb4 \
+  < docker/sql/mysql/init/02_data.sql
+```
+
+> Default admin account: **admin / admin** — change the password after your first login.
 
 ### 3. Celery worker + beat (separate terminals; required for MCP compile/deploy)
 
 ```shell
+终端1
+cd backend
+source .venv/bin/activate
 asclaw celery worker      # runs compile/deploy tasks
+终端2
+cd backend
+source .venv/bin/activate
 asclaw celery beat        # periodic: syncs deploy-log status every 30s
 ```
 
@@ -173,16 +209,16 @@ Once up:
 
 ### What runs automatically
 
-- **Docker init SQL** — `docker/sql/mysql/init/*.sql` runs on first MySQL boot
-  (empty volume): creates both databases + the `sys_menu` seed.
-- **Incremental migrations** — `alembic upgrade head` applies every script under
-  `backend/alembic/versions/` (each is an incremental schema change, e.g. the
-  `enterprise_id` columns). You don't run them individually.
+- **Docker init SQL** — `docker/sql/mysql/init/01_schema.sql` + `02_data.sql` run on first
+  MySQL boot (empty volume). `01_schema.sql` creates both databases and all tables;
+  `02_data.sql` seeds menus, the admin account and sample data. Both are idempotent
+  (`IF NOT EXISTS` / `INSERT IGNORE`).
 - **Missing-table auto-create** — on startup the API creates any missing table
   (`create_tables`; create-only, never alters).
 
-> `backend/sql/*.sql` are idempotent *manual* DDL for an already-populated
-> database whose alembic history is out of sync — a fresh install doesn't need them.
+> Alembic is **not** part of the quick start anymore — `01_schema.sql` stamps
+> `alembic_version` at the current head. Keep it for day-to-day incremental schema
+> changes (`alembic revision --autogenerate` + `alembic upgrade head`).
 
 ### One-command launcher (optional)
 
