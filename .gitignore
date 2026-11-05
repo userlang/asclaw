@@ -6,9 +6,9 @@
 *.dylib
 *.db
 
-skills/
-design/
-references/
+/skills/
+/design/
+/references/
 
 **/.next/
 **/node_modules/
