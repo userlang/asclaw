@@ -48,7 +48,7 @@ time. Connect them to your AI agents via a hosted proxy layer, all from a unifie
 ## Quick Start
 
 ```shell
-git clone <your-repo-url>.git
+git clone https://gitee.com/lang_junnan_admin/asclaw.git
 cd weclaw
 
 # Copy and edit the environment file
