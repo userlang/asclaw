@@ -92,7 +92,6 @@ class StatusType(IntEnum):
 class UserSocialType(StrEnum):
     """用户社交类型"""
 
-    github = 'GitHub'
     google = 'Google'
 
 

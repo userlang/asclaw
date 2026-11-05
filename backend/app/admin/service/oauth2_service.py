@@ -157,10 +157,6 @@ class OAuth2Service:
         avatar = user.get('avatar_url')
 
         match social:
-            case UserSocialType.github:
-                sid = user.get('id')
-                username = user.get('login')
-                nickname = user.get('name')
             case UserSocialType.google:
                 sid = user.get('id')
                 username = user.get('name')

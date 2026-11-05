@@ -8,7 +8,6 @@ import {
   emailLogin,
   getAuthMe,
   sendEmailCode,
-  signInWithGithub,
   signInWithGoogle,
 } from "@/lib/user"
 import Link from "next/link"
@@ -23,7 +22,7 @@ function LoginContent() {
   const searchParams = useSearchParams()
   const { setUser } = useUser()
 
-  const [isLoading, setIsLoading] = useState<"github" | "google" | "email" | "code" | null>(null)
+  const [isLoading, setIsLoading] = useState<"google" | "email" | "code" | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [email, setEmail] = useState("")
   const [step, setStep] = useState<Step>("email")
@@ -52,24 +51,6 @@ function LoginContent() {
       if (timerRef.current) clearInterval(timerRef.current)
     }
   }, [])
-
-  async function handleSignInWithGithub() {
-    try {
-      setIsLoading("github")
-      setError(null)
-
-      const data = await signInWithGithub()
-
-      if (data?.url) {
-        window.location.href = data.url
-      }
-    } catch (err: any) {
-      console.error("Error signing in with Github:", err)
-      setError(err.message || "An unexpected error occurred. Please try again.")
-    } finally {
-      setIsLoading(null)
-    }
-  }
 
   async function handleSignInWithGoogle() {
     try {
@@ -205,30 +186,6 @@ function LoginContent() {
 
           {step === "email" ? (
             <>
-              <Button
-                variant="secondary"
-                className="h-12 w-full text-base"
-                size="lg"
-                onClick={handleSignInWithGithub}
-                disabled={isLoading !== null}
-              >
-                <img
-                  src="https://www.github.com/favicon.ico"
-                  alt="Github logo"
-                  width={20}
-                  height={20}
-                  className="mr-2 size-4"
-                />
-                <span>{isLoading === "github" ? "Connecting..." : "Continue with Github"}</span>
-              </Button>
-
-              {/* Divider */}
-              <div className="flex items-center gap-3">
-                <div className="h-px flex-1 bg-border" />
-                <span className="text-sm text-muted-foreground">或者</span>
-                <div className="h-px flex-1 bg-border" />
-              </div>
-
               {/* Email Login */}
               <div className="space-y-3">
                 <Input

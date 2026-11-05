@@ -1,8 +1,8 @@
-# WeClaw
+# ASCLaw
 
 [英文](README.md) [中文](README_ZH.md)
 
-WeClaw 是一个开源的 **MCP 与 Skills 市场平台** 用于实时发现、发布和调试 MCP 服务器与 AI 技能。通过托管代理层将它们连接到你的
+ASCLaw 是一个 **MCP 与 Skills 集成平台** 用于实时发现、发布和调试 MCP 服务器与 AI 技能。通过托管代理层将它们连接到你的
 AI Agent，并在统一的 Web UI 中完成所有操作。
 
 ![](imgs/ui-1.png)
@@ -18,7 +18,7 @@ AI Agent，并在统一的 Web UI 中完成所有操作。
 - **自动编译解析** — 自动连接服务器，解析 tools / prompts / resources，并持久化元数据
 - **托管代理（Hosted Proxy）** — 将本地 `stdio` 服务器封装为远程可访问的 HTTP 端点（无需客户端运行时环境）
 - **Agent 聊天** — 内置基于 CopilotKit + AG-UI 的聊天界面，可在浏览器中直接与服务器交互
-- **GitHub OAuth 登录** — 支持 GitHub 登录；服务器可设置为公开或私有
+- **邮箱验证码登录** — 支持邮箱验证码登录；服务器可设置为公开或私有
 - **管理后台** — 审核、批准与推荐服务器；管理用户和分类
 - **多语言支持（i18n）** — 支持中英文界面
 
@@ -46,7 +46,7 @@ AI Agent，并在统一的 Web UI 中完成所有操作。
 
 ``` shell
 git clone https://gitee.com/lang_junnan_admin/asclaw.git
-cd weclaw
+cd asclaw
 
 # 复制并修改环境变量文件
 cp backend/deploy/.env.server.example backend/deploy/.env.server

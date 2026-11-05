@@ -58,7 +58,7 @@ export function searchSkills(
 export interface SkillPublishParams {
   namespace: string
   slug: string
-  github_url: string
+  source_url: string
 }
 
 /** 发布 Skill */

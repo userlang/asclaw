@@ -9,7 +9,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends gcc python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /wemcp
+WORKDIR /asclaw
 
 COPY . .
 
@@ -38,13 +38,13 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
 
 RUN node -v && npm -v && npx -v
 
-COPY --from=builder /wemcp /wemcp/backend
+COPY --from=builder /asclaw /asclaw/backend
 
 COPY --from=builder /usr/local /usr/local
 
 COPY deploy/supervisord.conf /etc/supervisor/supervisord.conf
 
-WORKDIR /wemcp/backend
+WORKDIR /asclaw/backend
 
 # === FastAPI server image ===
 FROM base_server AS fastapi_server

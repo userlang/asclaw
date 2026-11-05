@@ -40,7 +40,7 @@ def run(host: str, port: int, reload: bool, workers: int) -> None:
     panel_content.append(f'📚 Redoc   文档: {redoc_url}\n', style='yellow')
     panel_content.append(f'📡 OpenAPI JSON: {openapi_url}\n', style='green')
 
-    console.print(Panel(panel_content, title='WeMCP 服务信息', border_style='purple', padding=(1, 2)))
+    console.print(Panel(panel_content, title='ASCLaw 服务信息', border_style='purple', padding=(1, 2)))
     granian.Granian(
         target='main:app',
         interface='asgi',
@@ -166,9 +166,9 @@ class Celery:
     subcmd: cappa.Subcommands[Worker | Beat | Flower]
 
 
-@cappa.command(help='wemcp命令行界面', default_long=True)
+@cappa.command(help='asclaw命令行界面', default_long=True)
 @dataclass
-class WeMCPCli:
+class AsclawCli:
     sql: Annotated[
         str,
         cappa.Arg(value_name='PATH', default='', show_default=False, help='在事务中执行 SQL 脚本'),
@@ -182,4 +182,4 @@ class WeMCPCli:
 
 def main() -> None:
     output = cappa.Output(error_format=f'{error_format}\n{output_help}')
-    asyncio.run(cappa.invoke_async(WeMCPCli, version='0.0.1', output=output))
+    asyncio.run(cappa.invoke_async(AsclawCli, version='0.0.1', output=output))

@@ -174,8 +174,6 @@ def register_middleware(app: FastAPI) -> None:
     )
 
     # CORS
-    # https://github.com/fastapi-practices/fastapi_best_architecture/pull/789/changes
-    # https://github.com/open-telemetry/opentelemetry-python-contrib/issues/4031
     if settings.MIDDLEWARE_CORS:
         app.add_middleware(
             CORSMiddleware,
@@ -225,7 +223,7 @@ def register_socket_app(app: FastAPI) -> None:
     socket_app = socketio.ASGIApp(
         socketio_server=sio,
         other_asgi_app=app,
-        # 切勿删除此配置：https://github.com/pyropy/fastapi-socketio/issues/51
+        # 切勿删除此配置（fastapi-socketio 兼容性要求）
         socketio_path='/ws/socket.io',
     )
     app.mount('/ws', socket_app)

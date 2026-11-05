@@ -22,13 +22,13 @@ alembic upgrade head
 python run.py
 
 # Start Celery worker (separate terminal)
-wemcp celery worker
+asclaw celery worker
 
 # Start Celery beat scheduler (separate terminal)
-wemcp celery beat
+asclaw celery beat
 
 # Celery monitoring UI at http://localhost:8555 (admin:123456)
-wemcp celery flower
+asclaw celery flower
 ```
 
 ### Frontend

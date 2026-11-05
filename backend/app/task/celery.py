@@ -27,13 +27,12 @@ def init_celery() -> celery.Celery:
     """初始化 Celery 应用"""
 
     # TODO: Update this work if celery version >= 6.0.0
-    # https://github.com/fastapi-practices/fastapi_best_architecture/issues/321
-    # https://github.com/celery/celery/issues/7874
+    # celery 5.5 兼容性处理
     celery.app.trace.build_tracer = celery_aio_pool.build_async_tracer
     celery.app.trace.reset_worker_optimizations()
 
     app = celery.Celery(
-        'wemcp_celery',
+        'asclaw_celery',
         enable_utc=False,
         timezone=settings.DATETIME_TIMEZONE,
         broker_url=f'redis://:{quote_plus(settings.REDIS_PASSWORD)}@{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.CELERY_BROKER_REDIS_DATABASE}',

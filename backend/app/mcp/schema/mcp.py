@@ -166,7 +166,7 @@ class AddMcpParam(SchemaBase):
     2. 解析api  restful_api  直接转发
         1. oauth2.0 授权后可以
         2. key校验的
-    3. 服务托管 基于gitlab github  需要 Dockerfile   mcpproxy转发
+    3. 服务托管 基于代码托管平台  需要 Dockerfile   mcpproxy转发
         1. 直接配置构建命令
         2. 直接配置启动命令
     4. 解析 mcpServer配置进行部署

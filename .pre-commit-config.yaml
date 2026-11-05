@@ -12,7 +12,6 @@ repos:
     hooks:
       - id: ruff
         args:
-          # https://github.com/astral-sh/ruff-pre-commit/issues/64
           - '--config'
           - 'backend/.ruff.toml'
           - '--fix'

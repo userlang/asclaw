@@ -1,15 +1,15 @@
 # AGENTS.md
 
-This file provides guidance for AI agents working in the WeMCP codebase.
+This file provides guidance for AI agents working in the ASCLaw codebase.
 
 ## Project Overview
 
-WeMCP is an open-source **MCP & Skills Marketplace** — discover, publish, and debug MCP servers and AI skills in real time. It connects them to AI agents via a hosted proxy layer, all from a unified web UI.
+ASCLaw is a **MCP & Skills integration platform** — discover, publish, and debug MCP servers and AI skills in real time. It connects them to AI agents via a hosted proxy layer, all from a unified web UI.
 
 ## Repository Layout
 
 ```
-wemcp/
+asclaw/
 ├── backend/          # Python FastAPI backend
 │   ├── app/
 │   │   ├── admin/    # Admin panel (user mgmt, review, approval)
@@ -87,8 +87,8 @@ source .venv/bin/activate
 cp deploy/.env.server .env
 alembic upgrade head
 python run.py                  # API server
-wemcp celery worker            # Celery worker (separate terminal)
-wemcp celery beat              # Celery beat scheduler (separate terminal)
+asclaw celery worker            # Celery worker (separate terminal)
+asclaw celery beat              # Celery beat scheduler (separate terminal)
 ```
 
 ## Frontend Conventions

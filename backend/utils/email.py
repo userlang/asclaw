@@ -10,7 +10,7 @@ from core.conf import settings
 async def send_verification_email(to_email: str, code: str) -> None:
     """发送验证码邮件"""
     msg = MIMEText(f'您的验证码是：{code}，5分钟内有效。', 'plain', 'utf-8')
-    msg['Subject'] = 'WeMCP 登录验证码'
+    msg['Subject'] = 'ASCLaw 登录验证码'
     msg['From'] = settings.SMTP_USER
     msg['To'] = to_email
     await aiosmtplib.send(

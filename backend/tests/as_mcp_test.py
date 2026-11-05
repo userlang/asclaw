@@ -20,7 +20,7 @@ async def client():
 async def get_mcp_by_user():
     mcp_configs: list[tuple[str, dict, str]] = []  # (name, config, transport)
 
-    mcp_server = await mcp_server_service.get_mcp_by_user(username='fovegage', server_name='12306-mcp')
+    mcp_server = await mcp_server_service.get_mcp_by_user(username='test_user', server_name='12306-mcp')
     if mcp_server and mcp_server.server_config:
         for mcp_name, mcp_cfg in mcp_server.server_config.get('mcpServers', {}).items():
             mcp_configs.append((mcp_name, mcp_cfg, mcp_server.transport))

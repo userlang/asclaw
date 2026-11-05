@@ -19,9 +19,9 @@ export const POST = async (req: NextRequest) => {
   const qs = params.toString()
   const backendUrl = qs ? `${BACKEND_BASE_URL}?${qs}` : BACKEND_BASE_URL
 
-  const wemcpAgent = new HttpAgent({
+  const asclawAgent = new HttpAgent({
     url: backendUrl,
-    description: "WeMCP Agent - AI assistant with MCP and skill integration",
+    description: "ASCLaw Agent - AI assistant with MCP and skill integration",
   })
 
   const { handleRequest } = copilotRuntimeNextJSAppRouterEndpoint({
@@ -29,7 +29,7 @@ export const POST = async (req: NextRequest) => {
     serviceAdapter: new ExperimentalEmptyAdapter(),
     runtime: new CopilotRuntime({
       agents: {
-        wemcp_agent: wemcpAgent,
+        asclaw_agent: asclawAgent,
       },
     }),
   })
