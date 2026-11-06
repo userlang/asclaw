@@ -33,6 +33,12 @@ export function NaviMenu() {
         {/* Desktop Navigation */}
         <div className="hidden items-center gap-6 text-xl font-medium md:flex">
           <Link
+            href="/chat"
+            className={isActive("/chat") ? activeLinkClass : linkClass}
+          >
+            Chat
+          </Link>
+          <Link
             href="/mcp"
             className={isActive("/mcp") ? activeLinkClass : linkClass}
           >
@@ -43,12 +49,6 @@ export function NaviMenu() {
             className={isActive("/skills") ? activeLinkClass : linkClass}
           >
             Skill
-          </Link>
-          <Link
-            href="/agent"
-            className={isActive("/agent") || isActive("/chat") ? activeLinkClass : linkClass}
-          >
-            Agent
           </Link>
         </div>
 
@@ -62,6 +62,17 @@ export function NaviMenu() {
             </SheetTrigger>
             <SheetContent side="right" className="w-[250px] pt-12">
               <nav className="flex flex-col">
+                <Link
+                  href="/chat"
+                  className={
+                    isActive("/chat")
+                      ? mobileActiveLinkClass
+                      : mobileLinkClass
+                  }
+                  onClick={() => setOpen(false)}
+                >
+                  Chat
+                </Link>
                 <Link
                   href="/mcp"
                   className={
@@ -81,17 +92,6 @@ export function NaviMenu() {
                   onClick={() => setOpen(false)}
                 >
                   Skill
-                </Link>
-                <Link
-                  href="/agent"
-                  className={
-                    isActive("/agent") || isActive("/chat")
-                      ? mobileActiveLinkClass
-                      : mobileLinkClass
-                  }
-                  onClick={() => setOpen(false)}
-                >
-                  Agent
                 </Link>
                 {!isLoggedIn && (
                   <Link
