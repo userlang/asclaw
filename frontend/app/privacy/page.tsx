@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 }
 
 export default function PrivacyPage() {
-  const lastUpdated = "2025年1月1日"
+  const lastUpdated = "2026年11月6日"
 
   return (
     <LayoutApp>
@@ -40,8 +40,9 @@ export default function PrivacyPage() {
                   1.1 您主动提供的信息
                 </h3>
                 <ul className="list-disc list-inside space-y-1.5 pl-2">
-                  <li>账户注册信息：电子邮件地址、用户名、密码</li>
-                  <li>第三方登录信息：通过 GitHub、Google 等第三方平台授权登录时获取的基本信息</li>
+                  <li>企业入驻信息：企业名称、统一社会信用代码、法定代表人、注册地址、企业简介等资质信息</li>
+                  <li>联系人信息：联系人姓名、联系电话、联系邮箱（经办入驻事宜的自然人的个人信息）</li>
+                  <li>企业账号信息：入驻时设置的登录用户名和密码（密码经加密存储，我们不保存明文）</li>
                   <li>用户内容：您在平台上创建的 Agent、配置信息、对话记录、上传的文件</li>
                   <li>反馈信息：您提交的问题报告、功能建议等</li>
                 </ul>
@@ -110,7 +111,7 @@ export default function PrivacyPage() {
               4. 数据安全
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              我们采用行业标准的安全措施保护您的信息，包括数据加密传输（HTTPS）、访问控制和定期安全审计。然而，互联网传输并非完全安全，我们无法保证信息传输的绝对安全性。请您妥善保管账户密码，不要将账户凭据分享给他人。
+              我们采用行业标准的安全措施保护您的信息，包括数据加密传输（HTTPS）、访问控制和定期安全审计。然而，互联网传输并非完全安全，我们无法保证信息传输的绝对安全性。请您妥善保管账号密码，不要将账号凭据分享给他人。
             </p>
           </section>
 
@@ -119,7 +120,7 @@ export default function PrivacyPage() {
               5. 数据留存
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              我们将在您使用服务期间及之后合理必要的时间内保留您的信息，以满足本政策所述目的及遵守法律义务。您可以随时删除您的账户，删除后我们将在合理期限内删除您的个人信息，但法律法规要求保留的除外。
+              我们将在您使用服务期间及之后合理必要的时间内保留您的信息，以满足本政策所述目的及遵守法律义务。企业可以联系平台管理员申请注销企业账号，注销后我们将在合理期限内删除相关企业资质信息及联系人个人信息，但法律法规要求保留的除外。
             </p>
           </section>
 
@@ -146,7 +147,7 @@ export default function PrivacyPage() {
               8. 未成年人保护
             </h2>
             <p className="text-muted-foreground leading-relaxed">
-              我们的服务不面向 16 岁以下的未成年人。如果我们发现在未获得可证实的父母同意的情况下收集了未成年人的信息，我们将采取措施删除该信息。
+              本平台面向企业用户提供服务，入驻联系人须为具有完全民事行为能力并经企业授权的自然人。我们通常不会主动收集未成年人的个人信息；如发现此类信息，我们将采取措施予以删除。
             </p>
           </section>
 

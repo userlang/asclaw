@@ -261,3 +261,11 @@ code {
 [data-has-messages="false"] .copilotKitMessages {
   display: none !important;
 }
+/* 品牌渐变图标：配合 <GradientDefs /> 中的 #asclaw-icon-gradient 使用 */
+.icon-gradient {
+  stroke: url(#asclaw-icon-gradient);
+}
+
+.icon-gradient-fill {
+  fill: url(#asclaw-icon-gradient);
+}

@@ -10,8 +10,7 @@ import http from "@/lib/http"
 import { useTitlePolling } from "@/hooks/use-title-polling";
 import { cn } from "@/lib/utils";
 import { AccountModal } from "@/components/user/account-modal";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Clock, Download, FileText, HelpCircle, MessageSquare, Mic, Presentation, Settings, Sparkles, SquarePen, Table2, Users, type LucideIcon } from "lucide-react";
+import { Clock, FileText, HelpCircle, MessageSquare, Mic, Presentation, Settings, Sparkles, SquarePen, Table2, type LucideIcon } from "lucide-react";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useState } from "react";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -33,8 +32,6 @@ export type ChatSidebarRef = {
 }
 
 // ─── Top / Footer actions ───────────────────────────────────────────────────
-
-const COMMUNITY_QR_URL = "https://toolres.hprt.com/OnlineToolCenter/6156b3f0-161f-11f1-9c2a-c470bdc8eb5a/qrcode/2026-3-2/1772445953408_code.png"
 
 // ─── 智能体选项 ─────────────────────────────────────────────────────────────
 
@@ -311,34 +308,6 @@ export const ChatSidebar = forwardRef<ChatSidebarRef, ChatSidebarProps>(
             <Settings className="h-4 w-4" />
             <span className="text-[11px]">设置</span>
           </button>
-
-          {/* 下载 */}
-          <a
-            href="https://wiwi.chat/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-muted-foreground hover:bg-accent hover:text-foreground flex flex-col items-center gap-1 rounded-lg px-3 py-1.5"
-          >
-            <Download className="h-4 w-4" />
-            <span className="text-[11px]">下载</span>
-          </a>
-
-          {/* 社群 - hover 显示二维码 */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button className="text-muted-foreground hover:bg-accent hover:text-foreground flex flex-col items-center gap-1 rounded-lg px-3 py-1.5">
-                <Users className="h-4 w-4" />
-                <span className="text-[11px]">社群</span>
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="bg-background border border-border p-1.5 shadow-lg">
-              <img
-                src={COMMUNITY_QR_URL}
-                alt="社群二维码"
-                className="w-32 h-32 rounded"
-              />
-            </TooltipContent>
-          </Tooltip>
         </div>
       </div>
 

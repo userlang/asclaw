@@ -42,3 +42,9 @@ export const API_ROUTE_SKILL_ADMIN_CATEGORY_CREATE = "/api/v1/admin/skill/catego
 export const API_ROUTE_SYS_USERS = "/api/v1/admin/sys/users"
 export const API_ROUTE_SYS_ROLES = "/api/v1/admin/sys/roles"
 export const API_ROUTE_SYS_MENUS = "/api/v1/admin/sys/menus"
+
+// Enterprise（企业入驻）
+export const API_ROUTE_ENTERPRISE_APPLY = "/api/v1/enterprise/apply"
+export const API_ROUTE_ENTERPRISE_LOGIN = "/api/v1/enterprise/login"
+export const API_ROUTE_ENTERPRISE_ADMIN = "/api/v1/admin/enterprise"
+export const API_ROUTE_ENTERPRISE_ADMIN_STATUS = "/api/v1/admin/enterprise/status"

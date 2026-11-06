@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import { AuthGuard } from "@/components/providers/auth-guard"
 import { UserProvider } from "@/components/providers/user-provider"
+import { GradientDefs } from "@/components/ui/gradient-defs"
 import { Toaster } from "@/components/ui/sonner"
 import { APP_DESCRIPTION, APP_NAME } from "@/lib/config"
 import { GoogleAnalytics } from "@next/third-parties/google"
@@ -40,6 +41,7 @@ export default async function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
+            <GradientDefs />
             <Toaster position="top-center" />
             <AuthGuard>{children}</AuthGuard>
             <GoogleAnalytics gaId="G-LP938NM4ZC" />

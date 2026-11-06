@@ -19,7 +19,8 @@ type UserContextType = {
   isLoading: boolean
   signOut: () => Promise<void>
   isJwtAuthenticated: boolean
-  setUser: (user: UserProfile | null) => void
+  /** 登录成功后调用：持久化 token、写入用户并立即标记已认证（SPA 内即时生效） */
+  login: (token: string, profile: UserProfile) => void
   isInitialized: boolean
   userMenuPaths: string[]
 }
@@ -93,6 +94,12 @@ export function UserProvider({
     checkJwtToken()
   }, []) // 只在组件挂载时执行一次
 
+  const login = (token: string, profile: UserProfile) => {
+    localStorage.setItem("auth_token", token)
+    setUser(profile)
+    setIsJwtAuthenticated(true)
+  }
+
   const signOut = async () => {
     setIsLoading(true)
     try {
@@ -116,7 +123,7 @@ export function UserProvider({
         isLoading,
         signOut,
         isJwtAuthenticated,
-        setUser,
+        login,
         isInitialized,
         userMenuPaths,
       }}
