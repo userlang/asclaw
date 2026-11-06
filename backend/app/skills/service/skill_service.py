@@ -25,6 +25,15 @@ class SkillService:
             return await skill_dao.get_skill_by_user(db, skill_name, user.id)
 
     @staticmethod
+    async def get_public_skill_by_user(username: str, skill_name: str) -> AgentSkill | None:
+        """获取用户已公开的 skill 详情（仅 is_public=1），用于详情页展示"""
+        async with async_db_session() as db:
+            user = await user_dao.get_by_username(db, username)
+            if not user:
+                raise errors.NotFoundError(msg='用户不存在')
+            return await skill_dao.get_public_skill_by_user(db, skill_name, user.id)
+
+    @staticmethod
     async def get_categories() -> list:
         async with async_db_session() as db:
             stmt = await skill_category_dao.get_all_categories()
