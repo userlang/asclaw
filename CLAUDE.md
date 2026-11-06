@@ -51,7 +51,7 @@ If pnpm itself is broken (corepack cache missing the pnpm binary — `Cannot fin
 - **Main DB** (`DATABASE_SCHEMA`, default `asclaw`): all domain tables (users, MCP servers, skills, agents, enterprises). Alembic migrations target this.
 - **Chat DB** (`DATABASE_CHAT_SCHEMA`, default `asclaw_chat`): agent thread/chat history (agentscope `AsyncSQLAlchemyMemory`).
 
-Both are MySQL (`mysql+asyncmy`) or PostgreSQL; SQL init for Docker lives in `docker/sql/mysql/init/init.sql` (databases only — tables come from migrations or startup auto-create).
+Both are MySQL (`mysql+asyncmy`) or PostgreSQL; SQL init for Docker lives in `docker/sql/mysql/init/` (`01_create_databases.sql` creates both databases, `02_sys_menu.sql` seeds admin menus — tables come from migrations or startup auto-create; manual DDL scripts live in `backend/sql/`, see its README).
 
 ### Backend layering (fastapi-best-architecture style)
 
