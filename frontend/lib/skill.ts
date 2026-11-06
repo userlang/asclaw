@@ -29,6 +29,25 @@ export interface SkillSearchItem {
   favorite_count: number
 }
 
+// ============ Skill Detail ============
+
+export interface SkillDetail {
+  name: string
+  title: string
+  description: string | null
+  path: string | null
+  repository: string | null
+  owner: string
+  avatar: string
+  category: string | null
+  favorite_count: number
+}
+
+/** 获取 Skill 详情（公开） */
+export function getSkillDetail(owner: string, skillName: string): Promise<SkillDetail> {
+  return http.get<SkillDetail>(`/api/v1/skill/${encodeURIComponent(owner)}/${encodeURIComponent(skillName)}`)
+}
+
 export interface SkillSearchParams {
   page?: number
   size?: number
