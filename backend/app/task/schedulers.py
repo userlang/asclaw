@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# 作者：langjunnan
+# 开发时间：2025年7月23日
+
 # -*- coding: utf-8 -*-
 import asyncio
 import json
@@ -19,6 +22,7 @@ from core.conf import settings
 from database.db import async_db_session
 from database.redis import redis_client
 from redis.asyncio.lock import Lock
+from redis.exceptions import LockNotOwnedError
 from sqlalchemy import select
 from sqlalchemy.exc import DatabaseError, InterfaceError
 from utils.serializers import select_as_dict
@@ -344,8 +348,27 @@ class DatabaseScheduler(Scheduler):
     def tick(self, **kwargs):
         """重写父函数"""
         if self.lock:
-            logger.debug('beat: Extending lock...')
-            run_await(self.lock.extend)(DEFAULT_MAX_LOCK_TIMEOUT, replace_ttl=True)
+            try:
+                logger.debug('beat: Extending lock...')
+                run_await(self.lock.extend)(DEFAULT_MAX_LOCK_TIMEOUT, replace_ttl=True)
+            except LockNotOwnedError:
+                # 锁意外丢失（Redis 重启、进程被阻塞超过 TTL 等）。
+                # 原实现直接让 LockNotOwnedError 冒泡导致 beat 整个进程崩溃；
+                # 这里改为重新获取锁继续调度，beat 是常驻进程，韧性优先。
+                logger.warning('beat: Lock lost (expired or flushed), re-acquiring...')
+                try:
+                    lock = redis_client.lock(
+                        self.lock_key,
+                        timeout=DEFAULT_MAX_LOCK_TIMEOUT,
+                        sleep=self.max_interval,
+                    )
+                    run_await(lock.acquire)()
+                    self.lock = lock
+                    logger.info('beat: Lock re-acquired')
+                except Exception as e:
+                    # 拿不到锁（可能别的 beat 实例正持有）则跳过本轮 tick，
+                    # 下次 tick 再尝试，不让进程退出
+                    logger.error('beat: Failed to re-acquire lock: %s', e)
 
         result = super().tick(**kwargs)
         return result

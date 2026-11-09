@@ -1,3 +1,6 @@
+// 作者：langjunnan
+// 开发时间：2025年7月23日
+
 import { HttpAgent } from "@ag-ui/client";
 import { CopilotRuntime, copilotRuntimeNextJSAppRouterEndpoint, ExperimentalEmptyAdapter } from "@copilotkit/runtime";
 import { NextRequest } from "next/server";
@@ -14,8 +17,11 @@ export const POST = async (req: NextRequest) => {
   const params = new URLSearchParams()
   const mcps = searchParams.get("mcps")
   const skills = searchParams.get("skills")
+  // Agent 模式：agent=owner/name，后端加载该 agent 绑定的 mcps/skills/system_prompt
+  const agent = searchParams.get("agent")
   if (mcps) params.set("mcps", mcps)
   if (skills) params.set("skills", skills)
+  if (agent) params.set("agent", agent)
   const qs = params.toString()
   const backendUrl = qs ? `${BACKEND_BASE_URL}?${qs}` : BACKEND_BASE_URL
 

@@ -1,3 +1,6 @@
+// 作者：langjunnan
+// 开发时间：2025年7月23日
+
 "use client";
 
 import { useUser } from "@/components/providers/user-provider";
@@ -30,12 +33,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { AUTH_DAILY_MESSAGE_LIMIT } from "@/lib/config";
 import { getMyMcps, MyMcpItem } from "@/lib/mcp";
 import { getMyAgents, MyAgentItem } from "@/lib/agent";
-import { getMySkills, MySkillItem } from "@/lib/skill";
+import { deleteMySkill, getMySkills, MySkillItem } from "@/lib/skill";
 import { cn } from "@/lib/utils";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { Bot, CheckCircle2, Clock, History, Languages, Loader2, Monitor, Moon, MoreHorizontal, Pencil, Plus, Save, Server, Settings, Sparkles, Sun, User, X, XCircle, Zap } from "lucide-react";
+import { Bot, CheckCircle2, Clock, History, Languages, Loader2, Monitor, Moon, MoreHorizontal, Plus, Save, Server, Settings, Sparkles, Sun, User, X, XCircle, Zap } from "lucide-react";
+import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { DeployLogItem, getMyDeployLogs } from "@/lib/mcp";
 
 
@@ -329,6 +334,7 @@ function AgentPanel() {
 function SkillPanel() {
   const [skills, setSkills] = useState<MySkillItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [deletingId, setDeletingId] = useState<number | null>(null)
 
   useEffect(() => {
     getMySkills({ page: 1, size: 20 })
@@ -336,6 +342,21 @@ function SkillPanel() {
       .catch(() => setSkills([]))
       .finally(() => setIsLoading(false))
   }, [])
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("确定删除该 Skill？删除后不可恢复。")) return
+    setDeletingId(id)
+    try {
+      await deleteMySkill(id)
+      setSkills((prev) => prev.filter((s) => s.id !== id))
+      toast.success("Skill 已删除")
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "删除失败"
+      toast.error(message)
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -388,9 +409,24 @@ function SkillPanel() {
                 )}
               </div>
             </div>
-            <Button variant="ghost" size="sm" className="h-7 shrink-0 text-xs">
-              管理
-            </Button>
+            <div className="flex shrink-0 items-center gap-1">
+              <Button variant="ghost" size="sm" className="h-7 text-xs" asChild>
+                <Link href={`/skills/${skill.owner}/${skill.name}`}>查看</Link>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-destructive hover:text-destructive h-7 text-xs"
+                disabled={deletingId === skill.id}
+                onClick={() => handleDelete(skill.id)}
+              >
+                {deletingId === skill.id ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  "删除"
+                )}
+              </Button>
+            </div>
           </div>
         ))}
       </div>

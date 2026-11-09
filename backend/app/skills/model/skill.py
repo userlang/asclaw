@@ -1,9 +1,12 @@
+# 作者：langjunnan
+# 开发时间：2025年7月23日
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
 from common.model import Base, id_key
-from sqlalchemy import BigInteger, Boolean, String, Text
+from sqlalchemy import BigInteger, Boolean, SmallInteger, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 if TYPE_CHECKING:
@@ -12,7 +15,7 @@ if TYPE_CHECKING:
 
 
 class AgentSkill(Base):
-    """agent server"""
+    """agent skill"""
 
     __tablename__ = 'agent_skill'
     id: Mapped[id_key] = mapped_column(init=False)
@@ -25,6 +28,18 @@ class AgentSkill(Base):
 
     # 异步下载
     path: Mapped[str] = mapped_column(String(255), comment='skill path')
+
+    # SKILL.md 正文（Markdown，导入时解析；chat 时随 description 一并注入 sys_prompt）
+    body: Mapped[str | None] = mapped_column(Text, default=None, comment='SKILL.md 正文（Markdown）')
+
+    # 导入来源链接（GitHub 目录等）
+    source_url: Mapped[str | None] = mapped_column(String(500), default=None, comment='导入来源 URL')
+
+    # 安装/使用次数
+    install_count: Mapped[int] = mapped_column(default=0, comment='安装/使用次数')
+
+    # 审核状态: 0待审核 1已发布 2已下架
+    status: Mapped[int] = mapped_column(SmallInteger, default=1, comment='0待审核 1已发布 2已下架')
 
     # 是否公开
     is_public: Mapped[bool | None] = mapped_column(Boolean, default=False, comment='是否公开')

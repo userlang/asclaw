@@ -1,3 +1,6 @@
+// 作者：langjunnan
+// 开发时间：2025年7月23日
+
 "use client";
 
 import { useUser } from "@/components/providers/user-provider";
@@ -52,16 +55,16 @@ export function McpDropdown({ className }: McpDropdownProps) {
             创建Skill
           </Link>
         </DropdownMenuItem>
-        {/*<DropdownMenuSeparator />*/}
-        {/*<DropdownMenuItem asChild>*/}
-        {/*  <Link*/}
-        {/*    href="/build/agent"*/}
-        {/*    className="flex cursor-pointer items-center gap-2"*/}
-        {/*  >*/}
-        {/*    <Bot className="h-4 w-4" />*/}
-        {/*    创建Agent*/}
-        {/*  </Link>*/}
-        {/*</DropdownMenuItem>*/}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link
+            href="/build/agent"
+            className="flex cursor-pointer items-center gap-2"
+          >
+            <Bot className="h-4 w-4" />
+            创建Agent
+          </Link>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

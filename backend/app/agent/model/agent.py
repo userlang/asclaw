@@ -1,3 +1,6 @@
+# 作者：langjunnan
+# 开发时间：2025年7月23日
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -28,6 +31,8 @@ class AgentServer(Base):
     knowledge: Mapped[str | None] = mapped_column(JSON, default=None, comment='知识库列表')
     databases: Mapped[str | None] = mapped_column(JSON, default=None, comment='数据库列表')
     skills: Mapped[str | None] = mapped_column(JSON, default=None, comment='skills列表')
+    # 绑定的 MCP 服务器（["owner/name", ...]，chat 时自动加载）
+    mcps: Mapped[list | None] = mapped_column(JSON, default=None, comment='绑定的 MCP 服务器列表 ["owner/name", ...]')
 
     # 开关
     enable_search: Mapped[bool | None] = mapped_column(Boolean, default=False, comment='是否开启联网搜索')
