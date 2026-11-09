@@ -1,3 +1,6 @@
+// 作者：langjunnan
+// 开发时间：2025年7月23日
+
 export type SearchType = "mcp" | "skill" | "agent"
 
 export type SelectedContext = {

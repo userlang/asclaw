@@ -1,3 +1,6 @@
+# 作者：langjunnan
+# 开发时间：2025年7月23日
+
 from app.mcp.schema.mcp import AddMcpServerParam
 from fastmcp.mcp_config import MCPConfig
 

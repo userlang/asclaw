@@ -1,3 +1,6 @@
+# 作者：langjunnan
+# 开发时间：2025年7月23日
+
 from app.admin.crud.crud_admin_skill import skill_admin_server_dao
 from app.admin.crud.crud_admin_skill_category import skill_admin_category_dao
 from app.skills.model import AgentSkill

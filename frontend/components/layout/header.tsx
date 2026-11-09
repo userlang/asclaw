@@ -1,4 +1,7 @@
 "use client"
+// 作者：langjunnan
+// 开发时间：2025年7月23日
+
 
 import { Logo } from "@/components/layout/logo"
 import { NaviMenu } from "@/components/layout/navi-menu"

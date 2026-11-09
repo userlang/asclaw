@@ -1,3 +1,6 @@
+# 作者：langjunnan
+# 开发时间：2025年7月23日
+
 from app.admin.schema.category import AddCategoryParam, CategoryDetail, GetAllCategoryParam
 from app.admin.service.admin_category_service import mcp_admin_category_service
 from common.pagination import DependsPagination, PageData, paging_data

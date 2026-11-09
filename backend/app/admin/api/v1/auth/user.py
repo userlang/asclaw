@@ -1,3 +1,6 @@
+# 作者：langjunnan
+# 开发时间：2025年7月23日
+
 from app.admin.schema.user import GetCurrentUserInfoWithRelationDetail
 from common.response.response_schema import ResponseSchemaModel, response_base
 from common.security.jwt import DependsJwtAuth

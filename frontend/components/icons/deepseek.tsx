@@ -1,3 +1,6 @@
+// 作者：langjunnan
+// 开发时间：2025年7月23日
+
 import * as React from "react"
 import type { SVGProps } from "react"
 

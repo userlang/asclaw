@@ -1,3 +1,6 @@
+// 作者：langjunnan
+// 开发时间：2025年7月23日
+
 const INDIGO = "#6366f1"
 const PURPLE = "#a855f7"
 const FUCHSIA = "#d946ef"

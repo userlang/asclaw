@@ -1,3 +1,6 @@
+// 作者：langjunnan
+// 开发时间：2025年7月23日
+
 import LayoutApp from "@/components/layout/layout-app"
 import { APP_DOMAIN, APP_NAME } from "@/lib/config"
 import type { Metadata } from "next"

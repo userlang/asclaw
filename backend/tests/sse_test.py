@@ -1,3 +1,6 @@
+# 作者：langjunnan
+# 开发时间：2025年7月23日
+
 import requests
 
 url = 'http://127.0.0.1:8000/api/v1/agent/chat'

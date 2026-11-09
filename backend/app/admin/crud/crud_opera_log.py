@@ -1,3 +1,6 @@
+# 作者：langjunnan
+# 开发时间：2025年7月23日
+
 from app.admin.model import OperaLog
 from app.admin.schema.opera_log import CreateOperaLogParam
 from sqlalchemy import Select

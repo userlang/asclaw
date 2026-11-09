@@ -1,3 +1,6 @@
+# 作者：langjunnan
+# 开发时间：2025年7月23日
+
 from app.mcp.api.v1.deploy import router as deploy_router
 from app.mcp.api.v1.mcp import router as mcp_router
 from fastapi import APIRouter

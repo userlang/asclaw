@@ -1,3 +1,6 @@
+// 作者：langjunnan
+// 开发时间：2025年7月23日
+
 "use client";
 
 import { APP_NAME } from "@/lib/config";
