@@ -9,6 +9,7 @@ const withBundleAnalyzer = require("@next/bundle-analyzer")({
 
 const nextConfig: NextConfig = withBundleAnalyzer({
   output: "standalone",
+  devIndicators: false,
   experimental: {
     optimizePackageImports: ["@phosphor-icons/react"],
   },

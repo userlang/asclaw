@@ -266,6 +266,7 @@ export interface McpRecommendItem {
   description: string
   server_type: "hosted" | "local"
   owner: string
+  cover?: string | null
   call_count: number
 }
 
