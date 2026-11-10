@@ -8,12 +8,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getMcpCategories, getMyMcps, McpCategory, McpSearchParams, McpSearchServerItem, MyMcpItem, PaginatedData, searchMcpServers } from "@/lib/mcp";
+import { getMcpCategories, getMyMcps, McpCategory, McpSearchParams, McpSearchServerItem, MyMcpItem, PaginatedData, searchMcpServers, updateMcpPublic } from "@/lib/mcp";
 import { cn } from "@/lib/utils";
 import { CaretLeft, CaretRight, CloudArrowDown, MagnifyingGlass } from "@phosphor-icons/react";
 import { Cloud, Globe, KeyRound, Monitor, Server, User, Wrench, Zap } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 
 type ActiveTab = "community" | "mine"
@@ -86,6 +87,20 @@ export default function SearchPage() {
       setIsMyMcpLoading(false)
     }
   }, [])
+
+  // 切换我的 MCP 公开/私有（仅创建者；公开后出现在广场）
+  const handleTogglePublic = async (server: MyMcpItem) => {
+    const nextPublic = !server.is_public
+    try {
+      await updateMcpPublic(server.id, nextPublic)
+      setMyMcps((prev) =>
+        prev.map((s) => (s.id === server.id ? { ...s, is_public: nextPublic } : s))
+      )
+      toast.success(nextPublic ? "已公开，广场可见" : "已设为私有")
+    } catch {
+      // 请求失败已由 http 单例统一 toast
+    }
+  }
 
   // Fetch categories and auto-select first
   useEffect(() => {
@@ -357,15 +372,17 @@ export default function SearchPage() {
                             alt={server.server_name}
                           />
                           <AvatarFallback className="text-xs font-medium">
-                            {server.server_name.substring(0, 2).toUpperCase()}
+                            {(server.server_title || server.server_name)
+                              .substring(0, 2)
+                              .toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0 flex-1">
                           <h3
                             className="text-foreground truncate text-sm font-semibold transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400"
-                            title={server.server_name}
+                            title={server.server_title || server.server_name}
                           >
-                            {server.server_name}
+                            {server.server_title || server.server_name}
                           </h3>
                           <p className="text-muted-foreground truncate text-xs">
                             {server.owner}
@@ -481,11 +498,17 @@ export default function SearchPage() {
                       >
                         <div className="group border-border/50 bg-card hover:border-primary/30 hover:shadow-primary/5 relative flex min-h-[160px] flex-col rounded-xl border p-5 transition-all duration-300 hover:shadow-xl">
                           <div className="mb-3 flex items-center gap-3">
-                            <div className="bg-muted ring-border/50 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-xs font-medium ring-1">
-                              {server.server_name
-                                .substring(0, 2)
-                                .toUpperCase()}
-                            </div>
+                            <Avatar className="ring-border/50 h-9 w-9 flex-shrink-0 ring-1">
+                              <AvatarImage
+                                src={server.avatar || undefined}
+                                alt={server.server_title || server.server_name}
+                              />
+                              <AvatarFallback className="text-xs font-medium">
+                                {(server.server_title || server.server_name)
+                                  .substring(0, 2)
+                                  .toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
                             <div className="min-w-0 flex-1">
                               <h3
                                 className="text-foreground truncate text-sm font-semibold transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400"
@@ -499,14 +522,29 @@ export default function SearchPage() {
                                 {server.server_name}
                               </p>
                             </div>
-                            <Badge
-                              variant={
-                                server.is_public ? "default" : "secondary"
+                            <button
+                              type="button"
+                              title={
+                                server.is_public
+                                  ? "点击设为私有"
+                                  : "点击公开到广场"
                               }
-                              className="flex-shrink-0 text-xs"
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                handleTogglePublic(server)
+                              }}
+                              className="flex-shrink-0 cursor-pointer"
                             >
-                              {server.is_public ? "公开" : "私有"}
-                            </Badge>
+                              <Badge
+                                variant={
+                                  server.is_public ? "default" : "secondary"
+                                }
+                                className="text-xs transition-opacity hover:opacity-80"
+                              >
+                                {server.is_public ? "公开" : "私有"}
+                              </Badge>
+                            </button>
                           </div>
                           <p
                             className="text-muted-foreground mb-auto line-clamp-2 text-sm leading-relaxed"

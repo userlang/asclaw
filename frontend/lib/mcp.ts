@@ -34,6 +34,7 @@ export interface McpCategory {
 export interface McpSearchServerItem {
   id: number
   server_name: string
+  server_title?: string | null
   description: string
   server_type: string
   avatar: string
@@ -307,6 +308,7 @@ export function getMcpServerRecommend(): Promise<McpRecommendCategory[]> {
 
 export interface McpRecommendItem {
   server_name: string
+  server_title?: string | null
   description: string
   server_type: "hosted" | "local"
   owner: string
@@ -379,6 +381,13 @@ export function updateMcpAvatar(mcpId: number, avatar: string | null): Promise<n
   return http.put<null>(`${API_ROUTE_MCP_SERVER_DETAIL}/${mcpId}/avatar`, { avatar })
 }
 
+/** 切换我的 MCP 公开/私有（仅创建者；公开后出现在广场） */
+export function updateMcpPublic(mcpId: number, isPublic: boolean): Promise<null> {
+  return http.put<null>(`${API_ROUTE_MCP_SERVER_DETAIL}/${mcpId}/public`, {
+    is_public: isPublic ? 1 : 0,
+  })
+}
+
 /** 修改 MCP 封面（仅创建者；置空清除封面，首页样式用） */
 export function updateMcpCover(mcpId: number, cover: string | null): Promise<null> {
   return http.put<null>(`${API_ROUTE_MCP_SERVER_DETAIL}/${mcpId}/cover`, { cover })
@@ -405,6 +414,7 @@ export interface MyMcpItem {
   server_name: string
   description: string | null
   server_type: string
+  avatar?: string | null
   is_public: boolean | null
   needs_auth?: boolean
   user: {
