@@ -47,4 +47,12 @@ class TaskBase(Task):
         :param einfo: 异常信息
         :return:
         """
-        asyncio.create_task(task_notification(msg=f'任务 {task_id} 执行失败'))
+        # on_failure 在无运行事件循环的线程中回调，直接 create_task 会抛
+        # RuntimeError('no running event loop') 掩盖真实错误；
+        # 有 loop 就挂上去，没有就用独立 loop 跑完通知
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            asyncio.run(task_notification(msg=f'任务 {task_id} 执行失败'))
+        else:
+            loop.create_task(task_notification(msg=f'任务 {task_id} 执行失败'))
