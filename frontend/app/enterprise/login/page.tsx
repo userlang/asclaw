@@ -48,6 +48,7 @@ function LoginContent() {
       // 与平台统一的用户体系：token + 用户信息（SPA 内即时生效）
       login(data.access_token, {
         id: String(data.user.id),
+        username: data.user.username || "",
         nickname: data.user.nickname || data.user.username,
         avatar: data.user.avatar || "",
         email: data.user.email || "",

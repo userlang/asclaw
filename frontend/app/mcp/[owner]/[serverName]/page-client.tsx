@@ -13,20 +13,34 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { CredentialDialog } from "@/components/mcp/credential-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { callMcpServerTool, getMcpServerDetail, McpServerItem } from "@/lib/mcp"
+import { useUser } from "@/components/providers/user-provider"
+import { callMcpServerTool, getMcpCredentialStatus, getMcpServerDetail, McpServerItem, updateMcpAvatar, updateMcpCover } from "@/lib/mcp"
 import { cn } from "@/lib/utils"
 import { Play } from "@phosphor-icons/react"
 import {
   Cloud,
   Globe,
   Info,
+  KeyRound,
   Monitor,
+  Pencil,
   Zap,
 } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
+import { toast } from "sonner"
 
 export default function ServerDetailClient({
   owner,
@@ -48,6 +62,15 @@ export default function ServerDetailClient({
     Record<string, Record<string, any>>
   >({})
   const [envInputs, setEnvInputs] = useState<Record<string, string>>({})
+  const [credentialOpen, setCredentialOpen] = useState(false)
+  const { user } = useUser()
+  const router = useRouter()
+  const [avatarOpen, setAvatarOpen] = useState(false)
+  const [avatarValue, setAvatarValue] = useState("")
+  const [savingAvatar, setSavingAvatar] = useState(false)
+  const [coverOpen, setCoverOpen] = useState(false)
+  const [coverValue, setCoverValue] = useState("")
+  const [savingCover, setSavingCover] = useState(false)
 
   useEffect(() => {
     const fetchServerDetail = async () => {
@@ -101,6 +124,45 @@ export default function ServerDetailClient({
 
     fetchServerDetail()
   }, [owner, serverName])
+
+  // 头像保存后局部刷新详情（不整页重载）
+  const refreshDetail = async () => {
+    try {
+      setServerDetail(await getMcpServerDetail(owner, serverName))
+    } catch {
+      // 静默失败，保留旧详情
+    }
+  }
+
+  const handleSaveAvatar = async (avatar: string | null) => {
+    if (!serverDetail?.id) return
+    try {
+      setSavingAvatar(true)
+      await updateMcpAvatar(serverDetail.id, avatar)
+      toast.success(avatar ? "头像已更新" : "已恢复默认头像")
+      setAvatarOpen(false)
+      await refreshDetail()
+    } catch {
+      toast.error("保存失败，请重试")
+    } finally {
+      setSavingAvatar(false)
+    }
+  }
+
+  const handleSaveCover = async (cover: string | null) => {
+    if (!serverDetail?.id) return
+    try {
+      setSavingCover(true)
+      await updateMcpCover(serverDetail.id, cover)
+      toast.success(cover ? "封面已更新" : "已清除封面")
+      setCoverOpen(false)
+      await refreshDetail()
+    } catch {
+      toast.error("保存失败，请重试")
+    } finally {
+      setSavingCover(false)
+    }
+  }
 
   const handleInputChange = (
     toolName: string,
@@ -233,6 +295,25 @@ export default function ServerDetailClient({
 
   // Generate a seed for the avatar based on the server title
   const avatarSeed = server.server_title.replace(/\s+/g, "-").toLowerCase()
+  const isMine = !!user && user.username === owner
+
+  // 在线体验前拦截：需鉴权且未配置自己的凭证（个人/企业共享）时，先弹出凭证配置
+  const handleTryOnline = async () => {
+    const chatUrl = `/chat?type=mcp&owner=${encodeURIComponent(owner)}&name=${encodeURIComponent(serverName)}`
+    if (server.needs_auth && !isMine && server.id) {
+      try {
+        const status = await getMcpCredentialStatus(server.id)
+        if (!status.configured && !status.enterprise?.configured) {
+          toast.info("该 MCP 需要配置你自己的 Token 后才能在线体验")
+          setCredentialOpen(true)
+          return
+        }
+      } catch {
+        // 状态查询失败不拦截，放行交由后端兜底校验
+      }
+    }
+    router.push(chatUrl)
+  }
 
   return (
     <div
@@ -246,15 +327,29 @@ export default function ServerDetailClient({
           <div className="flex items-start justify-between gap-6">
             {/* Left: Info */}
             <div className="flex min-w-0 flex-1 items-start gap-4">
-              <Avatar className="h-14 w-14 flex-shrink-0 rounded-xl ring-1 ring-border/50">
-                <AvatarImage
-                  src={`https://api.dicebear.com/7.x/bottts/svg?seed=${avatarSeed}`}
-                  alt={server.server_title}
-                />
-                <AvatarFallback className="rounded-xl text-sm font-medium">
-                  {server.server_title.substring(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+              <div className="relative flex-shrink-0">
+                <Avatar className="h-14 w-14 rounded-xl ring-1 ring-border/50">
+                  <AvatarImage
+                    src={server.avatar || `https://api.dicebear.com/9.x/bottts/svg?seed=${avatarSeed}`}
+                    alt={server.server_title}
+                  />
+                  <AvatarFallback className="rounded-xl text-sm font-medium">
+                    {server.server_title.substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                {isMine && (
+                  <button
+                    onClick={() => {
+                      setAvatarValue(server.avatar || "")
+                      setAvatarOpen(true)
+                    }}
+                    className="bg-primary text-primary-foreground absolute -bottom-1 -right-1 rounded-full p-1 shadow-sm transition-colors hover:bg-primary/90"
+                    title="编辑头像"
+                  >
+                    <Pencil className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
               <div className="min-w-0 flex-1">
                 <div className="mb-2 flex items-center gap-3">
                   <h1 className="truncate text-2xl font-bold text-foreground">
@@ -289,10 +384,33 @@ export default function ServerDetailClient({
                     >
                       {server.server_type === "hosted" ? (
                         <Cloud className="h-3 w-3" />
-                      ) : (
+                      ) : server.server_type === "local" ? (
                         <Monitor className="h-3 w-3" />
+                      ) : (
+                        <Globe className="h-3 w-3" />
                       )}
-                      {server.server_type === "hosted" ? "Hosted" : "Local"}
+                      {server.server_type === "hosted"
+                        ? "Hosted"
+                        : server.server_type === "local"
+                          ? "Local"
+                          : "Remote"}
+                    </Badge>
+                  )}
+                  {server.needs_auth ? (
+                    <Badge
+                      variant="outline"
+                      className="gap-1 border-amber-500/40 text-xs text-amber-600 dark:text-amber-400"
+                    >
+                      <KeyRound className="h-3 w-3" />
+                      需配置 Token
+                    </Badge>
+                  ) : (
+                    <Badge
+                      variant="outline"
+                      className="gap-1 border-emerald-500/40 text-xs text-emerald-600 dark:text-emerald-400"
+                    >
+                      <Zap className="h-3 w-3" />
+                      无需 Token
                     </Badge>
                   )}
                 </div>
@@ -300,14 +418,35 @@ export default function ServerDetailClient({
             </div>
 
             {/* Right: Playground Button */}
-            <Link
-              href={`/chat?type=mcp&owner=${encodeURIComponent(owner)}&name=${encodeURIComponent(serverName)}`}
-            >
-              <Button className="gap-2 whitespace-nowrap">
+            <div className="flex items-center gap-2">
+              {isMine && server.id && (
+                <Button
+                  variant="outline"
+                  className="gap-2 whitespace-nowrap"
+                  onClick={() => {
+                    setCoverValue(server.cover || "")
+                    setCoverOpen(true)
+                  }}
+                >
+                  <Pencil className="h-4 w-4" />
+                  编辑封面
+                </Button>
+              )}
+              {server.needs_auth && server.id && (
+                <Button
+                  variant="outline"
+                  className="gap-2 whitespace-nowrap"
+                  onClick={() => setCredentialOpen(true)}
+                >
+                  <KeyRound className="h-4 w-4" />
+                  配置使用
+                </Button>
+              )}
+              <Button className="gap-2 whitespace-nowrap" onClick={handleTryOnline}>
                 <Play className="h-4 w-4" weight="fill" />
                 在线体验
               </Button>
-            </Link>
+            </div>
           </div>
         </div>
 
@@ -593,6 +732,85 @@ export default function ServerDetailClient({
           ) : null}
         </div>
       </div>
+
+      {serverDetail?.id && (
+        <CredentialDialog
+          mcpId={serverDetail.id}
+          serverTitle={serverDetail.server_title || serverDetail.server_name}
+          open={credentialOpen}
+          onOpenChange={setCredentialOpen}
+        />
+      )}
+
+      {/* 编辑头像弹窗（仅创建者可见入口） */}
+      <Dialog open={avatarOpen} onOpenChange={setAvatarOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>编辑 MCP 头像</DialogTitle>
+            <DialogDescription>
+              填写图片 URL（如 https://example.com/logo.png）；
+              点「恢复默认」或清空后保存，将回落到默认机器人头像。
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            placeholder="https://example.com/avatar.png"
+            value={avatarValue}
+            onChange={(e) => setAvatarValue(e.target.value)}
+          />
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleSaveAvatar(null)}
+              disabled={savingAvatar}
+            >
+              恢复默认
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => handleSaveAvatar(avatarValue.trim() || null)}
+              disabled={savingAvatar}
+            >
+              保存
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 编辑封面弹窗（仅创建者可见入口，封面用于首页样式） */}
+      <Dialog open={coverOpen} onOpenChange={setCoverOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>编辑 MCP 封面</DialogTitle>
+            <DialogDescription>
+              填写横幅图片 URL（建议 16:9，如 https://example.com/cover.jpg），
+              将用于首页展示样式；点「清除封面」或清空后保存即恢复无封面。
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            placeholder="https://example.com/cover.jpg"
+            value={coverValue}
+            onChange={(e) => setCoverValue(e.target.value)}
+          />
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleSaveCover(null)}
+              disabled={savingCover}
+            >
+              清除封面
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => handleSaveCover(coverValue.trim() || null)}
+              disabled={savingCover}
+            >
+              保存
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

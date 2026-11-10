@@ -3,6 +3,7 @@
 
 import asyncio
 
+import copy
 from collections import defaultdict
 from datetime import datetime
 
@@ -28,6 +29,7 @@ from agentscope_runtime.engine.deployers.adapter.agui.agui_adapter_utils import 
 from app.agent.model.chat import AgentChat
 from app.agent.schema.agent import RunBody
 from app.agent.service.agent_server_service import agent_server_service
+from app.mcp.schema.mcp import detect_needs_auth
 from app.mcp.service.mcp_server_service import mcp_server_service
 from app.skills.service.skill_service import skill_service
 from common.response.response_schema import response_base
@@ -141,9 +143,40 @@ async def chat_endpoint(
             owner, server_name = item.split('/', 1)
             try:
                 mcp_server = await mcp_server_service.get_mcp_by_user(username=owner, server_name=server_name)
-                if mcp_server and mcp_server.server_config:
-                    for mcp_name, mcp_cfg in mcp_server.server_config.get('mcpServers', {}).items():
+                if not mcp_server or not mcp_server.server_config:
+                    continue
+                # 可见性：非本人只能使用公开 MCP，防止猜 owner/name 拉起私有服务
+                is_owner = mcp_server.user_id == request.user.id
+                if not is_owner and not mcp_server.is_public:
+                    logger.warning('MCP {}/{} not public, skip for user {}', owner, server_name, user_id)
+                    continue
+                # 凭证：非 owner 一律先剥离配置里的鉴权材料（header + URL 敏感参数），
+                # 需要鉴权的 MCP 必须叠加调用者自己的凭证（个人优先、企业共享兜底），
+                # 严禁沿用 owner 的 token
+                server_needs_auth = detect_needs_auth(mcp_server.server_config, mcp_server.transport)
+                for mcp_name, mcp_cfg in mcp_server.server_config.get('mcpServers', {}).items():
+                    if is_owner:
                         mcp_configs.append((mcp_name, mcp_cfg, mcp_server.transport))
+                        continue
+                    if not server_needs_auth:
+                        # 无鉴权材料，配置本身可安全复用
+                        mcp_configs.append((mcp_name, copy.deepcopy(mcp_cfg), mcp_server.transport))
+                        continue
+                    user_credential, cred_source = await mcp_server_service.resolve_user_credential(
+                        db_session, request.user.id, mcp_server.id
+                    )
+                    if not user_credential:
+                        logger.warning(
+                            'MCP {}/{} requires auth but user {} has no credential, skip',
+                            owner,
+                            server_name,
+                            user_id,
+                        )
+                        continue
+                    logger.info('MCP {}/{} uses {} credential', owner, server_name, cred_source)
+                    sanitized_cfg = mcp_server_service.sanitize_server_config(copy.deepcopy(mcp_cfg))
+                    merged_cfg = mcp_server_service.apply_credential_to_config(sanitized_cfg, user_credential)
+                    mcp_configs.append((mcp_name, merged_cfg, mcp_server.transport))
 
             except Exception as e:
                 logger.warning('Failed to load MCP {}: {}', item, e)

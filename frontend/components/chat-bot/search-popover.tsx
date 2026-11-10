@@ -18,11 +18,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { useUser } from "@/components/providers/user-provider"
 import { searchAgents, type AgentSearchItem } from "@/lib/agent"
-import { searchMcpServers, type McpSearchServerItem } from "@/lib/mcp"
+import { getMcpCredentialConfiguredIds, searchMcpServers, type McpSearchServerItem } from "@/lib/mcp"
 import { searchSkills, type SkillSearchItem } from "@/lib/skill"
 import { cn } from "@/lib/utils"
-import { Bot, Check, Search, Server, Sparkles } from "lucide-react"
+import { Bot, Check, KeyRound, Search, Server, Sparkles } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
 const SEARCH_CONFIG: Record<
@@ -64,6 +65,8 @@ export function SearchPopover({
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
+  const [configuredIds, setConfiguredIds] = useState<number[]>([])
+  const { user } = useUser()
   const config = SEARCH_CONFIG[searchType]
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -71,7 +74,15 @@ export function SearchPopover({
     if (!open) {
       setQuery("")
       setResults([])
+      setConfiguredIds([])
       return
+    }
+
+    // 需鉴权 MCP 只有已配置凭证（个人/企业共享）才可选；owner 自己不受限
+    if (searchType === "mcp") {
+      getMcpCredentialConfiguredIds()
+        .then((ids) => setConfiguredIds(ids ?? []))
+        .catch(() => setConfiguredIds([]))
     }
 
     const timer = setTimeout(async () => {
@@ -86,6 +97,8 @@ export function SearchPopover({
             label: s.server_name,
             description: s.description,
             avatar: s.avatar,
+            id: s.id,
+            needs_auth: s.needs_auth,
           }))
         } else if (searchType === "skill") {
           const res = await searchSkills({ keyword: query, size: 10 })
@@ -122,6 +135,15 @@ export function SearchPopover({
       setTimeout(() => inputRef.current?.focus(), 100)
     }
   }, [open])
+
+  // 需鉴权但当前用户未配置凭证的 MCP 不展示（owner 自己除外）
+  const selectableResults =
+    searchType === "mcp"
+      ? results.filter(
+          (r) =>
+            !r.needs_auth || r.owner === user?.username || (r.id != null && configuredIds.includes(r.id))
+        )
+      : results
 
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
@@ -164,20 +186,20 @@ export function SearchPopover({
             </div>
           )}
 
-          {!loading && results.length === 0 && query && (
+          {!loading && selectableResults.length === 0 && query && (
             <div className="text-muted-foreground py-8 text-center text-sm">
               未找到结果
             </div>
           )}
 
-          {!loading && results.length === 0 && !query && (
+          {!loading && selectableResults.length === 0 && !query && (
             <div className="text-muted-foreground py-8 text-center text-sm">
               输入关键词搜索
             </div>
           )}
 
           {!loading &&
-            results.map((item, idx) => {
+            selectableResults.map((item, idx) => {
               const isSelected = selectedItems.some(
                 (s) => s.owner === item.owner && s.name === item.name
               )
@@ -194,7 +216,7 @@ export function SearchPopover({
                   }}
                   className={cn(
                     "hover:bg-accent flex w-full items-start gap-3 px-3 py-3 text-left transition-colors",
-                    idx !== results.length - 1 && "border-border/50 border-b",
+                    idx !== selectableResults.length - 1 && "border-border/50 border-b",
                     isSelected && "bg-accent/50"
                   )}
                 >
@@ -213,6 +235,12 @@ export function SearchPopover({
                       >
                         {item.owner}
                       </Badge>
+                      {item.needs_auth && (
+                        <KeyRound
+                          className="h-3 w-3 shrink-0 text-amber-500"
+                          aria-label="需配置 Token"
+                        />
+                      )}
                     </div>
                     <p className="text-muted-foreground mt-0.5 truncate text-xs">
                       {item.description || "暂无描述"}

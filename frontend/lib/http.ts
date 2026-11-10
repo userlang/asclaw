@@ -40,6 +40,22 @@ instance.interceptors.request.use((config) => {
   return config
 })
 
+/** 登录失效统一处理：清 token、友好提示并跳登录页（登录后跳回原页面） */
+function handleAuthExpired() {
+  if (typeof window === "undefined") return
+  // 登录页本身不发跳转，避免死循环
+  if (window.location.pathname.startsWith("/enterprise/login")) return
+  localStorage.removeItem("auth_token")
+  toast({
+    title: "请先登录",
+    description: "您还未登录或登录状态已失效，正在跳转登录页…",
+    status: "error",
+  })
+  setTimeout(() => {
+    window.location.href = `/enterprise/login?callbackUrl=${encodeURIComponent(window.location.pathname)}`
+  }, 1200)
+}
+
 // ---- 响应拦截：统一错误处理 ----
 instance.interceptors.response.use(
   (response) => {
@@ -47,6 +63,10 @@ instance.interceptors.response.use(
 
     // 业务 code !== 200 视为错误
     if (res.code !== 200) {
+      // 业务 code 401（HTTP 200 形态）同样视为登录失效
+      if (res.code === 401) {
+        handleAuthExpired()
+      }
       const errMsg = res.msg || "请求失败"
       toast({ title: "请求失败", description: errMsg, status: "error" })
       return Promise.reject(new BusinessError(res.code, errMsg))
@@ -55,11 +75,12 @@ instance.interceptors.response.use(
     return response
   },
   (error) => {
-    // 401/403 清除 token
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("auth_token")
-      }
+    const status: number | undefined = error.response?.status
+
+    // HTTP 401：未登录/token 失效 → 友好提示并跳登录页，不再重复弹原始报错
+    if (status === 401) {
+      handleAuthExpired()
+      return Promise.reject(new BusinessError(401, "登录已失效，请重新登录"))
     }
 
     let errMsg: string
@@ -70,23 +91,21 @@ instance.interceptors.response.use(
           ? "请求超时，请稍后重试"
           : "网络异常，请检查网络连接"
     } else {
-      // 优先使用后端返回的业务错误信息
+      // 优先使用后端返回的业务错误信息（如 403 的业务权限提示）
       const serverMsg = error.response.data?.msg
       if (serverMsg) {
         errMsg = serverMsg
       } else {
         // HTTP status 错误
-        const status = error.response.status
         const messages: Record<number, string> = {
           400: "请求参数错误",
-          401: "未授权，请重新登录",
           403: "没有权限访问",
           404: "请求资源不存在",
           500: "服务器内部错误",
           502: "网关错误",
           503: "服务不可用",
         }
-        errMsg = messages[status] || `请求失败 (${status})`
+        errMsg = messages[status as number] || `请求失败 (${status})`
       }
     }
 

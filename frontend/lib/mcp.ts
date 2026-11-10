@@ -32,15 +32,17 @@ export interface McpCategory {
 // ============ MCP Search Server Item ============
 
 export interface McpSearchServerItem {
+  id: number
   server_name: string
   description: string
-  server_type: "hosted" | "local"
+  server_type: string
   avatar: string
   tools: number
   prompts: number
   resources: number
   call_count: number
   owner: string
+  needs_auth?: boolean
 }
 
 // ============ MCP Server ============
@@ -50,7 +52,9 @@ export interface McpServerItem {
   server_title: string
   server_name: string
   description: string
-  server_type?: "hosted" | "local"
+  avatar?: string | null
+  cover?: string | null
+  server_type?: string
   mcp_endpoint?: string
   envs?: Record<string, string>
   server_metadata: {
@@ -78,11 +82,51 @@ export interface McpServerItem {
   }>
   prompts?: any
   resources?: any
+  needs_auth?: boolean
   created_time?: string
   updated_time?: string
   user?: {
     username: string
   }
+}
+
+// ============ 广场凭证（MCP 为模板，token 各自配置） ============
+
+export interface McpCredentialStatus {
+  needs_auth: boolean
+  auth_keys: string[]
+  configured: boolean
+  enterprise?: {
+    id: number
+    name: string
+    configured: boolean
+  } | null
+}
+
+export type CredentialScope = "personal" | "enterprise"
+
+/** 查询某 MCP 的凭证配置状态（是否需要 token、需要的 header 键、个人/企业配置情况） */
+export function getMcpCredentialStatus(mcpId: number): Promise<McpCredentialStatus> {
+  return http.get<McpCredentialStatus>(`${API_ROUTE_MCP_SERVER_DETAIL}/${mcpId}/credential`)
+}
+
+/** 保存当前用户对某 MCP 的凭证（整体加密落库；scope=enterprise 时全企业可用） */
+export function saveMcpCredential(
+  mcpId: number,
+  headers: Record<string, string>,
+  scope: CredentialScope = "personal"
+): Promise<void> {
+  return http.put(`${API_ROUTE_MCP_SERVER_DETAIL}/${mcpId}/credential?scope=${scope}`, { headers })
+}
+
+/** 清除当前用户对某 MCP 的凭证 */
+export function deleteMcpCredential(mcpId: number, scope: CredentialScope = "personal"): Promise<void> {
+  return http.delete(`${API_ROUTE_MCP_SERVER_DETAIL}/${mcpId}/credential?scope=${scope}`)
+}
+
+/** 当前用户已配置凭证（个人 + 企业共享）的 MCP id 列表，用于过滤需鉴权 MCP */
+export function getMcpCredentialConfiguredIds(): Promise<number[]> {
+  return http.get<number[]>(`${API_ROUTE_MCPS}credential-server-ids`)
 }
 
 export interface McpSearchParams {
@@ -150,7 +194,7 @@ export interface McpAdminServersParams {
   page?: number
   size?: number
   keyword?: string
-  server_type?: "hosted" | "local"
+  server_type?: string
   compile_type?: "package" | "stdio"
   is_public?: number
   transport?: "stdio" | "sse" | "streamable"
@@ -267,6 +311,7 @@ export interface McpRecommendItem {
   server_type: "hosted" | "local"
   owner: string
   cover?: string | null
+  needs_auth?: boolean
   call_count: number
 }
 
@@ -329,6 +374,16 @@ export function createMcpAdminCategory(
   return http.post<null>(API_ROUTE_MCP_ADMIN_CATEGORY_CREATE, params)
 }
 
+/** 修改 MCP 头像（仅创建者；置空恢复默认机器人头像） */
+export function updateMcpAvatar(mcpId: number, avatar: string | null): Promise<null> {
+  return http.put<null>(`${API_ROUTE_MCP_SERVER_DETAIL}/${mcpId}/avatar`, { avatar })
+}
+
+/** 修改 MCP 封面（仅创建者；置空清除封面，首页样式用） */
+export function updateMcpCover(mcpId: number, cover: string | null): Promise<null> {
+  return http.put<null>(`${API_ROUTE_MCP_SERVER_DETAIL}/${mcpId}/cover`, { cover })
+}
+
 // ============ MCP 提交 ============
 
 export interface McpSubmitData {
@@ -349,8 +404,9 @@ export interface MyMcpItem {
   server_title: string
   server_name: string
   description: string | null
-  server_type: "hosted" | "local"
+  server_type: string
   is_public: boolean | null
+  needs_auth?: boolean
   user: {
     username: string
     avatar: string | null

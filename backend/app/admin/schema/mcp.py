@@ -2,11 +2,13 @@
 # 开发时间：2025年7月23日
 
 from datetime import datetime
+from typing import Any
 
 from app.admin.schema.category import CategoryDetail
 from app.admin.schema.user import GetUserDetail
+from app.mcp.schema.mcp import detect_needs_auth
 from common.schema import SchemaBase
-from pydantic import Field
+from pydantic import Field, model_validator
 
 
 class AdminMcpBaseDetail(SchemaBase):
@@ -50,9 +52,20 @@ class MyMcpDetail(SchemaBase):
     description: str | None = Field(None, description='描述')
     server_type: str = Field(description='类型')
     is_public: bool | None = Field(None, description='是否公开')
+    needs_auth: bool = Field(False, description='是否需要用户自备 token')
     user: GetUserDetail = Field(description='用户信息')
     created_time: datetime = Field(description='创建时间')
     updated_time: datetime | None = Field(None, description='更新时间')
+
+    @model_validator(mode='before')
+    @classmethod
+    def handle_needs_auth(cls, data: Any) -> Any:
+        # 分页链路 items 为 dict，单对象链路为 ORM 对象，两种都要兼容
+        if isinstance(data, dict):
+            data['needs_auth'] = detect_needs_auth(data.get('server_config'), data.get('transport'))
+        else:
+            data.needs_auth = detect_needs_auth(data.server_config, data.transport)
+        return data
 
 
 class UpdateMcpServerParam(SchemaBase):
