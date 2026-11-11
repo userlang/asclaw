@@ -8,15 +8,16 @@ import ServerDetailClient from "./page-client"
 export default async function ServerDetailPage({
   params,
 }: {
-  params: Promise<{ owner: string; serverName: string }>
+  params: Promise<{ id: string }>
 }) {
-  const { owner, serverName } = await params
+  const { id } = await params
 
-  if (!serverName || !owner) return notFound()
+  // 详情按 MCP id 寻址，非数字 id 直接 404
+  if (!id || !/^\d+$/.test(id)) return notFound()
 
   return (
     <LayoutApp>
-      <ServerDetailClient owner={owner} serverName={serverName} />
+      <ServerDetailClient id={Number(id)} />
     </LayoutApp>
   )
 }
