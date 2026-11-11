@@ -17,6 +17,7 @@ docker exec -i mysql mysql -uroot -p'<密码见 backend/.env>' \
 | 脚本 | 说明 |
 | ---- | ---- |
 | `enterprise.sql` | 企业入驻表（enterprise），与 `app/enterprise/model/enterprise.py` 对应，含审核通过后关联的 `user_id` |
+| `asclaw_snapshot_2026-11-11.sql` | 开发库全量快照：`asclaw` 全部表结构 + 业务数据，`asclaw_chat` 仅表结构。**已脱敏**（用户/企业密码、LLM 与 MCP 凭证置空，`mcp_server.server_config` 内嵌密钥替换为 `***`）；运行日志类数据（登录/操作日志、task_result、deploy_log、agent_chat）未导出。含 `DROP TABLE`，**勿对已有数据的库直接执行**；整文件导入（两个库一起建） |
 
 ## Docker 初始化脚本
 

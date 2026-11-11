@@ -182,3 +182,6 @@ Thumbs.db
 # End of https://www.toptal.com/developers/gitignore/api/python
 .idea
 backend/tests/.agentscope_runtime/
+
+# dev launcher (start.sh/stop.sh) logs & pid files
+.run/
