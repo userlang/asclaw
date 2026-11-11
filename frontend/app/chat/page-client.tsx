@@ -6,6 +6,10 @@
 import { ChatBot } from "@/components/chat-bot";
 import type { SelectedContext } from "@/components/chat-bot/types";
 import { COPILOT_AGENT_NAME } from "@/lib/copilotkit/config";
+import { getLlmCredential, isLlmUnconfigured } from "@/lib/llm";
+import { Button } from "@/components/ui/button";
+import { Key, ArrowRight } from "@phosphor-icons/react";
+import Link from "next/link";
 import { CopilotKit } from "@copilotkit/react-core";
 import "@copilotkit/react-ui/styles.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -34,8 +38,18 @@ export default function ChatClient({ type, owner, name }: ChatClientProps) {
     setThreadId(id)
   }, [])
 
+  // 删除的若是当前打开的对话，回到新对话
+  const handleThreadDeleted = useCallback(
+    (deletedId: string) => {
+      if (deletedId === threadId) handleNewChat()
+    },
+    [threadId, handleNewChat]
+  )
+
   const [authHeaders, setAuthHeaders] = useState<Record<string, string>>({})
   const [authReady, setAuthReady] = useState(false)
+  // BYOK 门禁：个人/企业都没有模型密钥时，不进入聊天，直接给配置引导
+  const [llmGate, setLlmGate] = useState<"checking" | "ok" | "blocked">("checking")
 
   useEffect(() => {
     const token = localStorage.getItem("auth_token")
@@ -43,6 +57,9 @@ export default function ChatClient({ type, owner, name }: ChatClientProps) {
       setAuthHeaders({ Authorization: `Bearer ${token}` })
     }
     setAuthReady(true)
+    getLlmCredential()
+      .then((status) => setLlmGate(isLlmUnconfigured(status) ? "blocked" : "ok"))
+      .catch(() => setLlmGate("ok")) // 查询失败不拦聊天，让后端兜底报错
   }, [])
 
   // Selected MCPs and skills (lifted here to build dynamic runtimeUrl)
@@ -121,9 +138,29 @@ export default function ChatClient({ type, owner, name }: ChatClientProps) {
         activeThreadId={threadId}
         onSelectThread={handleSelectThread}
         onNewChat={handleNewChat}
+        onThreadDeleted={handleThreadDeleted}
       />
       <div className="flex flex-1 flex-col overflow-hidden">
-        {authReady ? (
+        {authReady && llmGate === "blocked" ? (
+          <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
+            <div className="bg-primary/10 flex h-14 w-14 items-center justify-center rounded-full">
+              <Key className="h-7 w-7 text-primary" weight="fill" />
+            </div>
+            <div>
+              <p className="text-lg font-semibold">尚未配置模型密钥</p>
+              <p className="text-muted-foreground mt-1 max-w-md text-sm">
+                平台不代跑大模型：聊天使用你自己配置的 OpenAI 兼容密钥（个人或企业共享），
+                花费与额度都由你的账号自行掌控。
+              </p>
+            </div>
+            <Button asChild>
+              <Link href="/user/settings">
+                去配置模型密钥
+                <ArrowRight className="ml-1 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        ) : authReady ? (
           <CopilotKit
             key={threadId ?? "new"}
             runtimeUrl={runtimeUrl}
