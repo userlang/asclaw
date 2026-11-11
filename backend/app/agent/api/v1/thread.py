@@ -28,7 +28,8 @@ from agentscope.tool import Toolkit
 from agentscope_runtime.engine.deployers.adapter.agui.agui_adapter_utils import AGUIAdapter
 from app.agent.model.chat import AgentChat
 from app.agent.schema.agent import RunBody
-from app.agent.service.agent_server_service import agent_server_service
+from app.agent.service.agent_server_service import AgentError, agent_server_service
+from app.agent.service.llm_credential_service import LlmConfig, llm_credential_service
 from app.mcp.schema.mcp import detect_needs_auth
 from app.mcp.service.mcp_server_service import mcp_server_service
 from app.skills.service.skill_service import skill_service
@@ -41,7 +42,7 @@ from database.db import async_db_session, get_db
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import StreamingResponse
 from loguru import logger
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from utils.agui import msg_to_runtime_events, sse
 from utils.openai import call_model
@@ -55,10 +56,15 @@ SSE_HEADERS = {
 }
 
 
-async def generate_title(thread_id: str, query: str):
-    """异步调用 AI 生成聊天标题"""
+async def generate_title(thread_id: str, query: str, llm_config: LlmConfig):
+    """异步调用 AI 生成聊天标题（用调用者自己的模型密钥）"""
     try:
-        title = await call_model(query=query)
+        title = await call_model(
+            query=query,
+            api_key=llm_config.api_key,
+            base_url=llm_config.base_url,
+            model=llm_config.title_model,
+        )
         if not title:
             title = '新对话'
 
@@ -93,6 +99,13 @@ async def chat_endpoint(
             first_query = m.content
             break
 
+    # BYOK：解析调用者自己的模型密钥（个人优先、企业共享兜底），未配置则拦截聊天并引导去设置页。
+    # 放在线程持久化之前，避免被拦截的请求积累空线程
+    llm_config = await llm_credential_service.resolve_llm_config(db_session, request.user.id)
+    if llm_config is None:
+        logger.warning('chat blocked: user {} has no llm credential', user_id)
+        raise AgentError(code=403, msg='尚未配置模型密钥，请先在「设置 → 模型密钥」中完成配置')
+
     # 持久化聊天线程元信息
     existing = await db_session.get(AgentChat, thread_id)
     if not existing:
@@ -112,7 +125,7 @@ async def chat_endpoint(
 
     # 异步生成标题
     if need_title and first_query:
-        asyncio.create_task(generate_title(thread_id, first_query))
+        asyncio.create_task(generate_title(thread_id, first_query, llm_config))
 
     # type=agent 时：加载 agent 配置，把它的 mcps/skills 并入请求参数，system_prompt 作为主提示词
     agent_system_prompt: str | None = None
@@ -142,7 +155,7 @@ async def chat_endpoint(
                 continue
             owner, server_name = item.split('/', 1)
             try:
-                mcp_server = await mcp_server_service.get_mcp_by_user(username=owner, server_name=server_name)
+                mcp_server = await mcp_server_service.get_mcp_by_owner_name(owner=owner, server_name=server_name)
                 if not mcp_server or not mcp_server.server_config:
                     continue
                 # 可见性：非本人只能使用公开 MCP，防止猜 owner/name 拉起私有服务
@@ -285,12 +298,12 @@ async def chat_endpoint(
                 name='Jarvis',
                 # 系统提示词：由「基础人设 + 已选技能描述」拼成（见上方 sys_prompt 拼接逻辑）
                 sys_prompt=sys_prompt,
-                # 对话模型：OpenAI 兼容客户端指向 DASHSCOPE_BASE_URL（OpenAI 兼容模式网关）
+                # 对话模型：OpenAI 兼容客户端，指向调用者自己配置的网关（BYOK，未配置已在入口拦截）
                 model=OpenAIChatModel(
-                    model_name=settings.DASHSCOPE_CHAT_MODEL,
-                    api_key=settings.DASHSCOPE_API_KEY,
+                    model_name=llm_config.chat_model,
+                    api_key=llm_config.api_key,
                     stream=True,
-                    client_kwargs={'base_url': settings.DASHSCOPE_BASE_URL},
+                    client_kwargs={'base_url': llm_config.base_url},
                 ),
                 # 短期记忆：AsyncSQLAlchemyMemory 持久化到 asclaw_chat 库（按 user_id + thread_id 隔离）
                 memory=memory,
@@ -445,6 +458,29 @@ async def get_thread(
             'title_generated': thread.title_generated,
         }
     )
+
+
+@router.delete('/threads/{thread_id}', dependencies=[DependsJwtAuth])
+async def delete_thread(
+    request: Request,
+    thread_id: str,
+    db_session: AsyncSession = Depends(get_db),
+    chat_db_session: AsyncSession = Depends(get_chat_db),
+):
+    """删除对话：清理主库线程元信息与聊天库消息（幂等，不存在或非本人时同样返回成功）"""
+    thread = await db_session.get(AgentChat, thread_id)
+    if thread and thread.user_id == str(request.user.id):
+        # 聊天库按外键依赖顺序清理：message_mark（无 session_id，需经 message 关联）→ message → session
+        await chat_db_session.execute(
+            text('DELETE FROM message_mark WHERE msg_id IN (SELECT id FROM message WHERE session_id = :tid)'),
+            {'tid': thread_id},
+        )
+        await chat_db_session.execute(text('DELETE FROM message WHERE session_id = :tid'), {'tid': thread_id})
+        await chat_db_session.execute(text('DELETE FROM session WHERE id = :tid'), {'tid': thread_id})
+        await chat_db_session.commit()
+        await db_session.delete(thread)
+        await db_session.commit()
+    return response_base.success()
 
 
 @router.get('/threads/{thread_id}/messages', dependencies=[DependsJwtAuth])

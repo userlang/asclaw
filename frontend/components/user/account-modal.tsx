@@ -36,12 +36,13 @@ import { getMyAgents, MyAgentItem } from "@/lib/agent";
 import { deleteMySkill, getMySkills, MySkillItem } from "@/lib/skill";
 import { cn } from "@/lib/utils";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { Bot, CheckCircle2, Clock, History, Languages, Loader2, Monitor, Moon, MoreHorizontal, Plus, Save, Server, Settings, Sparkles, Sun, User, X, XCircle, Zap } from "lucide-react";
+import { Bot, CheckCircle2, Clock, History, KeyRound, Languages, Loader2, Monitor, Moon, MoreHorizontal, Plus, Save, Server, Settings, Sparkles, Sun, User, X, XCircle, Zap } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { DeployLogItem, getMyDeployLogs } from "@/lib/mcp";
+import { LlmCredentialPanel } from "@/components/user/llm-credential-panel";
 
 
 // ---------- sidebar nav items ----------
@@ -58,6 +59,7 @@ const navItems: NavItem[] = [
   { key: "skill", label: "我的Skill", icon: Sparkles },
   { key: "deploy", label: "部署记录", icon: History },
   { key: "scheduled", label: "定时任务", icon: Clock },
+  { key: "llm", label: "模型密钥", icon: KeyRound },
   { key: "settings", label: "系统设置", icon: Settings },
 ]
 
@@ -1020,6 +1022,7 @@ export function AccountModal({
               {activeKey === "skill" && <SkillPanel />}
               {activeKey === "deploy" && <DeployLogPanel />}
               {activeKey === "scheduled" && <ScheduledTaskPanel />}
+              {activeKey === "llm" && <LlmCredentialPanel />}
               {activeKey === "settings" && <SettingsPanel />}
             </div>
           </div>
