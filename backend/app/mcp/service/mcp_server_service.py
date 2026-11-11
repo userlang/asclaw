@@ -19,6 +19,7 @@ from database.db import async_db_session
 from fastmcp.mcp_config import StdioMCPServer
 from loguru import logger
 from sqlalchemy import Select, select
+from sqlalchemy.orm import noload, selectinload
 from utils.encrypt import AESCipher
 
 
@@ -80,11 +81,27 @@ class McpServerService:
             return await mcp_server_dao.get_mcp(db, pk)
 
     @staticmethod
-    async def get_mcp_by_user(username: str, server_name: str) -> McpServer:
+    async def get_mcp_by_id(mcp_id: int) -> McpServer:
+        """按 id 查 MCP 详情；user 预加载供响应序列化（owner 字段），不存在抛 404"""
         async with async_db_session() as db:
-            user = await user_dao.get_by_username(db, username)
+            stmt = (
+                select(McpServer)
+                .where(McpServer.id == mcp_id)
+                .options(selectinload(McpServer.user), noload(McpServer.category))
+            )
+            result = await db.execute(stmt)
+            mcp_server = result.scalars().first()
+            if not mcp_server:
+                raise McpError(code=404, msg='MCP 不存在')
+            return mcp_server
+
+    @staticmethod
+    async def get_mcp_by_owner_name(owner: str, server_name: str) -> McpServer | None:
+        """按 owner/name 查 MCP，供聊天绑定（mcps=owner/name）解析；查不到返回 None"""
+        async with async_db_session() as db:
+            user = await user_dao.get_by_username(db, owner)
             if not user:
-                raise errors.NotFoundError(msg='用户不存在')
+                return None
             return await mcp_server_dao.get_mcp_with_user(db, server_name, user.id)
 
     @staticmethod

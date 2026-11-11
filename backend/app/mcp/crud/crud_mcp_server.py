@@ -58,9 +58,10 @@ class CRUDMcpServer(CRUDPlus[McpServer]):
         return stmt
 
     async def get_recommend_mcp(self) -> Select:
+        # 首页封面墙用：返回全部公开 MCP（不再要求推荐标），按更新时间倒序
         stmt = (
             select(self.model)
-            .where(self.model.is_recommend.is_(True), self.model.is_public.is_(True))
+            .where(self.model.is_public.is_(True))
             .options(
                 selectinload(self.model.user),
                 noload(self.model.category),
