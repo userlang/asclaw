@@ -68,24 +68,23 @@ flowchart LR
 
 <table>
 <tr>
-<td width="50%" valign="top" align="center"><img src="imgs/2mcp1284-1304.png" width="100%" alt="MCP 广场"/><br/><sub>🧩 <b>MCP 广场</b> — 17+ 服务器卡片流：本地/远程徽标、Token 要求、工具计数，分类检索一键直达</sub></td>
+<td colspan="2" valign="top" align="center"><img src="imgs/2mcp1284-1304.png" width="100%" alt="MCP 广场"/><br/><sub>🧩 <b>MCP 广场</b> — 17+ 服务器卡片流：本地/远程徽标、Token 要求、工具计数，分类检索一键直达</sub></td>
+</tr>
+<tr>
 <td width="50%" valign="top" align="center"><img src="imgs/3企业注册.png" width="100%" alt="企业入驻"/><br/><sub>🏢 <b>企业入驻</b> — 工商资质信息 + 企业账号一次填完，管理员审核通过即可登录</sub></td>
-</tr>
-<tr>
 <td width="50%" valign="top" align="center"><img src="imgs/4登录中.png" width="100%" alt="企业登录"/><br/><sub>🔐 <b>企业登录</b> — 极简登录卡片，成功态即时反馈直达工作台</sub></td>
+</tr>
+<tr>
 <td width="50%" valign="top" align="center"><img src="imgs/5提交mcp页-1284.png" width="100%" alt="提交 MCP"/><br/><sub>📤 <b>提交 MCP</b> — MCP 配置 / HTTP 接口双模式，粘贴 mcpServers JSON 即完成导入</sub></td>
-</tr>
-<tr>
 <td width="50%" valign="top" align="center"><img src="imgs/6添加skills1284.png" width="100%" alt="导入 Skill"/><br/><sub>🧠 <b>导入 Skill</b> — 左侧表单 + 右侧 SKILL.md 规范速查，GitHub 目录自动抓取或在线编写</sub></td>
+</tr>
+<tr>
 <td width="50%" valign="top" align="center"><img src="imgs/7个人中心.png" width="100%" alt="个人中心"/><br/><sub>🔑 <b>个人中心</b> — 账户 / 我的 MCP / Skill / 部署记录 / 模型密钥一抽屉直达，BYOK 密钥掩码管理</sub></td>
-</tr>
-<tr>
 <td width="50%" valign="top" align="center"><img src="imgs/8创建agent1284.png" width="100%" alt="创建 Agent"/><br/><sub>🤖 <b>创建 Agent</b> — 系统提示词 + 开场白 + 勾选绑定 MCP/Skill + 能力开关，所见即所得的编排</sub></td>
-<td width="50%" valign="top" align="center"><img src="imgs/9agent聊天开始.png" width="100%" alt="Agent 聊天"/><br/><sub>💬 <b>Agent 聊天</b> — 左栏多会话历史，@ 智能体即问即答，AI 自动生成会话标题</sub></td>
 </tr>
 <tr>
+<td width="50%" valign="top" align="center"><img src="imgs/9agent聊天开始.png" width="100%" alt="Agent 聊天"/><br/><sub>💬 <b>Agent 聊天</b> — 左栏多会话历史，@ 智能体即问即答，AI 自动生成会话标题</sub></td>
 <td width="50%" valign="top" align="center"><img src="imgs/10agent聊天过程.png" width="100%" alt="工具调用过程"/><br/><sub>⚡ <b>工具调用可视化</b> — 天气/地理编码/车票查询调用链全程展开，最终输出结构化出行报告</sub></td>
-<td width="50%" valign="top"></td>
 </tr>
 </table>
 
