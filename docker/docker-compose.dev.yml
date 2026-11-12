@@ -1,0 +1,37 @@
+# Development-only database containers (MySQL + Redis).
+# The API / Celery / frontend run on the host — see README "Quick Start".
+services:
+  mysql:
+    image: mysql:8.0.41
+    container_name: mysql
+    restart: unless-stopped
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-123456}"
+      TZ: Asia/Shanghai
+    volumes:
+      - asclaw_dev_mysql:/var/lib/mysql
+      # Auto-run on first boot (empty volume): creates `asclaw` + `asclaw_chat`
+      # databases and seeds the admin `sys_menu` table.
+      - ./sql/mysql/init:/docker-entrypoint-initdb.d
+    command:
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+      --lower_case_table_names=1
+
+  redis:
+    image: redis:7
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - asclaw_dev_redis:/data
+
+volumes:
+  asclaw_dev_mysql:
+  asclaw_dev_redis:

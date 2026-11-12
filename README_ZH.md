@@ -80,7 +80,7 @@ flowchart LR
 | **前端** | Next.js 15 App Router + React 19 + Tailwind CSS + Radix UI (shadcn) | App Router 路由即模块；Radix 提供无障碍原子组件，shadcn 风格二次封装 |
 | **Agent 前端** | CopilotKit + @ag-ui/client | 与后端 AG-UI 事件流对接的聊天 UI，工具调用、思考过程实时渲染 |
 | **数据库** | MySQL 8（主库 + 聊天库）+ Redis 7 | 双库隔离：业务域与 Agent 会话记忆分开；Redis 承担缓存、JWT 会话与 Celery Broker 三重职责 |
-| **部署** | Docker Compose + Caddy 2 + 阿里云函数计算 | Caddy 统一网关入口；MCP 服务器无服务器化托管，按需伸缩免运维 |
+| **部署** | Docker Compose + 阿里云函数计算 | MCP 服务器无服务器化托管于阿里云函数计算，按需伸缩；MySQL/Redis 由 Docker Compose 提供 |
 
 ## 📸 界面导览
 
@@ -107,47 +107,86 @@ flowchart LR
 
 ## 🚀 快速开始
 
+MySQL 和 Redis 用 Docker 容器跑，其余服务（API、Celery worker、前端）直接在本地跑。
+
+### 前置安装
+
+| 工具 | 版本 | 用途 |
+|------|------|------|
+| Docker + Docker Compose | — | 运行 MySQL 与 Redis（容器） |
+| Python | 3.10+ | 后端 |
+| uv | 最新 | 后端依赖与虚拟环境 |
+| Node.js | 20+ | 前端 |
+| pnpm | 9+ | 前端依赖 |
+
+### 1. 启动 MySQL 与 Redis（容器）
+
 ```shell
-git clone https://gitee.com/lang_junnan_admin/asclaw.git
-cd asclaw
-
-# 按需编辑服务配置（数据库 / Redis / DashScope 等）
-vim docker/config/.env.be.production
-vim docker/config/.env.fe.production
-
-# 使用预构建镜像一键启动（前端 + API + Celery + MySQL + Redis + Caddy）
+git clone https://gitee.com/lang_junnan_admin/asclaw.git && cd asclaw
 cd docker
-docker compose -f docker-compose-image.yaml up -d
+docker compose -f docker-compose.dev.yml up -d
+```
+
+**首次**启动（空数据卷）时，MySQL 会按文件名顺序自动执行
+`docker/sql/mysql/init/*.sql` —— 创建 `asclaw` 与 `asclaw_chat` 两个库，并写入后台
+`sys_menu` 菜单种子。无需手动执行 SQL；后续启动不会重复执行。
+
+### 2. 后端
+
+```shell
+cd backend
+uv sync && source .venv/bin/activate
+cp .env.example .env      # 按需修改 DATABASE_PASSWORD / DASHSCOPE_API_KEY
+alembic upgrade head      # 应用全部迁移（含增量表结构变更）
+asclaw run --port 8081    # API :8081（Swagger /docs）
+```
+
+### 3. Celery worker + beat（另开终端；MCP 编译/部署任务必需）
+
+```shell
+asclaw celery worker      # 执行编译/部署任务
+asclaw celery beat        # 定时：每 30 秒同步部署日志状态
+```
+
+> 两者都是普通前台进程（开发环境无自动重启）——做编译/部署期间保持运行；若其中一个挂了，重跑 `./start.sh`（会自动跳过已在运行的）。
+
+### 4. 前端
+
+```shell
+cd frontend
+pnpm install
+cp .env.example .env.local   # NEXT_PUBLIC_API_BASE_URL=http://localhost:8081
+pnpm dev -p 3001            # :3001
 ```
 
 启动完成后：
 
 | 服务 | 地址 |
 |------|------|
-| 前端 Web | <http://localhost:3000> |
-| API 文档（Swagger） | <http://localhost:8000/docs> |
+| 前端 Web | <http://localhost:3001> |
+| API 文档（Swagger） | <http://localhost:8081/docs> |
 | Celery 监控（Flower） | <http://localhost:8555>（admin / 123456） |
 
-> 💡 首个管理员账号、MCP 部署所需的对象存储与函数计算凭据等，均在 `.env.be.production` 中配置。
+### 哪些脚本会自动执行
 
-## 🧑‍💻 本地开发
+- **Docker 初始化 SQL** —— `docker/sql/mysql/init/*.sql` 在 MySQL 首次启动（空卷）时自动执行：建库 + `sys_menu` 种子。
+- **增量迁移** —— `alembic upgrade head` 自动应用 `backend/alembic/versions/` 下的全部迁移脚本（每一条都是一次增量表结构变更，例如新增 `enterprise_id` 列），无需逐条手跑。
+- **缺表自动补建** —— 后端启动时 `create_tables` 自动补建缺失的表（只建不改）。
 
-[开发指南](DEV.md)
+> `backend/sql/*.sql` 是针对「已有数据的库且 alembic 历史不同步」的幂等手动 DDL，全新安装不需要执行。
+
+### 一键启动脚本（可选）
+
+步骤 2–4 也可用仓库自带脚本一条命令拉起（API + Celery worker/beat + Flower + 前端，日志与 pid 存于 `.run/`）：
 
 ```shell
-# 后端（Python 3.10+ / uv）
-cd backend
-uv sync && source .venv/bin/activate
-alembic upgrade head
-asclaw run              # API :8000，热重载
-
-# 异步任务（另开终端，编译/部署任务必需）
-asclaw celery worker
-
-# 前端（pnpm）
-cd frontend
-pnpm install && pnpm dev    # :3000
+./start.sh    # API :8081 · 前端 :3001 · Flower :8555
+./stop.sh
 ```
+
+`./start.sh` 与上面手动步骤端口一致（`frontend/.env.local` 应指向 `http://localhost:8081`）。
+
+迁移编写与 pre-commit 钩子见 [DEV.md](DEV.md)。
 
 ## 🤝 贡献
 

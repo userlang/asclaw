@@ -46,7 +46,6 @@ asclaw/
 | Backend       | Python 3.10+, FastAPI, Celery, SQLAlchemy 2, Alembic   |
 | Database      | MySQL 8 (PostgreSQL also supported)                    |
 | Cache / Queue | Redis                                                  |
-| Proxy         | Caddy 2                                                |
 | MCP Runtime   | `fastmcp`, `mcp` SDK                                   |
 
 ## Backend Conventions
@@ -76,7 +75,7 @@ Each domain module (`mcp`, `agent`, `skills`, `admin`, `task`) follows the same 
 - **Router registration**: All routers are collected in `backend/app/router.py` → `main.py`.
 - **Background tasks**: Celery with Redis broker. Task logic lives in `app/task/`.
 - **Logging**: Use `loguru` — never use `print()` for production logs.
-- **Env config**: Settings loaded via `pydantic-settings` from `.env` (copied from `deploy/.env.server.example`).
+- **Env config**: Settings loaded via `pydantic-settings` from `.env` (copied from `.env.example`).
 
 ### Running the Backend (Dev)
 
@@ -84,9 +83,9 @@ Each domain module (`mcp`, `agent`, `skills`, `admin`, `task`) follows the same 
 cd backend
 uv sync
 source .venv/bin/activate
-cp deploy/.env.server .env
+cp .env.example .env
 alembic upgrade head
-python run.py                  # API server
+asclaw run                     # API server
 asclaw celery worker            # Celery worker (separate terminal)
 asclaw celery beat              # Celery beat scheduler (separate terminal)
 ```
@@ -111,7 +110,7 @@ asclaw celery beat              # Celery beat scheduler (separate terminal)
 ```shell
 cd frontend
 pnpm install
-pnpm dev          # http://localhost:3000
+pnpm dev -p 3001    # http://localhost:3001
 ```
 
 ## Code Quality
@@ -126,11 +125,11 @@ pre-commit run --all-files
 
 ## Docker / Production
 
+MySQL & Redis run as containers; the API / Celery / frontend run on the host.
+
 ```shell
 cd docker
-cp ../backend/deploy/.env.server.example ../backend/deploy/.env.server
-# Edit .env.server with real credentials
-docker compose up -d
+docker compose -f docker-compose.dev.yml up -d    # MySQL + Redis only
 ```
 
 ## Common Pitfalls
@@ -138,6 +137,6 @@ docker compose up -d
 - Always activate the Python virtualenv before running backend commands.
 - Never commit secrets or `.env` files.
 - Alembic migrations must be created and applied before starting the API server after model changes.
-- Frontend and backend run on separate ports in dev (`3000` vs `8000`); CORS is configured in backend middleware.
+- Frontend and backend run on separate ports in dev (`3001` vs `8081`); CORS is configured in backend middleware.
 - Celery workers must be running for compilation / proxy tasks to execute.
 - MCP server compilation validates `username + server_title` uniqueness.
