@@ -7,6 +7,7 @@ import json
 
 from app.admin.crud.crud_user import user_dao
 from app.enterprise.model.enterprise import Enterprise
+from app.enterprise.service.enterprise_service import get_user_enterprise
 from app.mcp.crud.crud_mcp_category import mcp_category_dao
 from app.mcp.crud.crud_mcp_credential import CRUDMcpUserCredential
 from app.mcp.crud.crud_mcp_server import mcp_server_dao
@@ -164,11 +165,8 @@ class McpServerService:
 
     @staticmethod
     async def _get_user_enterprise(db, user_id: int) -> Enterprise | None:
-        """当前用户关联的已审核通过企业（企业成员体系扩展后仅需改此处查询）"""
-        result = await db.execute(
-            select(Enterprise).where(Enterprise.user_id == user_id, Enterprise.status == 1)
-        )
-        return result.scalars().first()
+        """当前用户关联的已审核通过企业（共享实现见 enterprise_service.get_user_enterprise）"""
+        return await get_user_enterprise(db, user_id)
 
     @staticmethod
     async def get_credential_status(username: str, mcp_id: int) -> dict:

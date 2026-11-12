@@ -1,9 +1,10 @@
 # 作者：langjunnan
 # 开发时间：2025年7月23日
 
-from typing import List
+from typing import Annotated, List
 
-from app.agent.service.agent_server_service import agent_server_service
+from app.agent.service.agent_server_service import AgentError, agent_server_service
+from app.enterprise.service.enterprise_service import get_current_enterprise_id
 from app.mcp.schema.agent import (
     AgentCategoryDetail,
     AgentDetail,
@@ -15,7 +16,7 @@ from common.pagination import DependsPagination, PageData, paging_data
 from common.response.response_schema import ResponseModel, ResponseSchemaModel, response_base
 from common.security.jwt import DependsJwtAuth
 from database.db import CurrentSession, CurrentSessionTransaction
-from fastapi import APIRouter, Path, Query, Request
+from fastapi import APIRouter, Depends, Path, Query, Request
 
 router = APIRouter()
 
@@ -23,14 +24,22 @@ router = APIRouter()
 @router.get(
     '/',
     summary='搜索agent',
-    dependencies=[DependsPagination],
+    dependencies=[DependsJwtAuth, DependsPagination],
 )
 async def search_agent(
+    request: Request,
     db: CurrentSession,
+    viewer_enterprise_id: Annotated[int | None, Depends(get_current_enterprise_id)],
     keyword: str | None = Query(None, description='搜索词'),
     category_id: int | None = Query(None, description='分类id'),
 ) -> ResponseSchemaModel[PageData[AgentDetail]]:
-    agent_select = await agent_server_service.get_select(keyword=keyword, category_id=category_id)
+    """广场列表：公开 + 本人 + 本企业私有"""
+    agent_select = await agent_server_service.get_select(
+        keyword=keyword,
+        category_id=category_id,
+        viewer_user_id=request.user.id,
+        viewer_enterprise_id=viewer_enterprise_id,
+    )
     page_data = await paging_data(db, agent_select)
     return response_base.success(data=page_data)
 
@@ -80,15 +89,22 @@ async def publish_agent(request: Request, obj: PublishAgentParam) -> ResponseSch
 
 @router.get(
     '/{username}/{agent_name}',
-    summary='agent 公开详情',
+    summary='agent 详情（按可见性）',
+    dependencies=[DependsJwtAuth],
 )
 async def get_agent_detail(
+    request: Request,
+    viewer_enterprise_id: Annotated[int | None, Depends(get_current_enterprise_id)],
     username: str = Path(description='username'),
     agent_name: str = Path(description='agent_name'),
 ) -> ResponseSchemaModel[GetAgentDetail | None]:
-    from app.agent.service.agent_server_service import AgentError
-
-    result = await agent_server_service.get_public_agent_by_user(username=username, agent_name=agent_name)
+    """公开 agent 所有人可见；私有 agent 仅作者本人与其企业成员可见"""
+    result = await agent_server_service.get_agent_for_viewer(
+        username,
+        agent_name,
+        viewer_user_id=request.user.id,
+        viewer_enterprise_id=viewer_enterprise_id,
+    )
     if not result:
         # NotFoundError 继承 BaseExceptionMixin（不在全局处理器树），会变成空 500；
         # 必须用 AgentError（BaseExceptionError 子类）才能返回 404 + msg

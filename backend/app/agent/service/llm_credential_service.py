@@ -10,6 +10,7 @@ from app.agent.crud.crud_llm_credential import llm_credential_dao
 from app.agent.schema.llm_credential import LlmCredentialParam, LlmCredentialTestParam
 from app.admin.crud.crud_user import user_dao
 from app.enterprise.model.enterprise import Enterprise
+from app.enterprise.service.enterprise_service import get_user_enterprise
 from common.exception import errors
 from common.log import log
 from core.conf import settings
@@ -55,9 +56,8 @@ class LlmCredentialService:
 
     @staticmethod
     async def _get_user_enterprise(db, user_id: int) -> Enterprise | None:
-        """当前用户关联的已审核通过企业（企业成员体系扩展后仅需改此处查询）"""
-        result = await db.execute(select(Enterprise).where(Enterprise.user_id == user_id, Enterprise.status == 1))
-        return result.scalars().first()
+        """当前用户关联的已审核通过企业（共享实现见 enterprise_service.get_user_enterprise）"""
+        return await get_user_enterprise(db, user_id)
 
     @staticmethod
     def _decrypt_row(row) -> Optional[str]:

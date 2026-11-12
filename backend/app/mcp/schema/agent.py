@@ -20,6 +20,7 @@ class AgentDetail(SchemaBase):
     avatar: str | None = Field(None, description='agent avatar')
     description: str | None = Field(None, description='agent描述')
     owner: str = Field(description='owner')
+    is_public: bool = Field(False, description='是否公开')
     tools: int = Field(description='tools count')
     skills: int = Field(description='skills count')
     knowledge: int = Field(description='knowledge count')

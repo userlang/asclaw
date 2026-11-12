@@ -21,6 +21,7 @@ class SkillDetail(SchemaBase):
     path: str | None = Field(None, description='skill path')
     owner: str = Field(description='owner')
     avatar: str = Field(description='avatar')
+    is_public: bool = Field(False, description='是否公开')
     favorite_count: int = Field(description='favorite count')
 
     @model_validator(mode='before')
@@ -44,6 +45,7 @@ class GetSkillDetail(SchemaBase):
     owner: str = Field(description='owner')
     avatar: str = Field(description='avatar')
     category: str | None = Field(None, description='分类名称')
+    is_public: bool = Field(False, description='是否公开')
     favorite_count: int = Field(description='favorite count')
 
     @model_validator(mode='before')
@@ -84,3 +86,4 @@ class PublishSkillParam(SchemaBase):
     category_id: int | None = Field(None, description='分类ID')
     source_url: str | None = Field(None, max_length=500, description='SKILL.md 所在目录 URL（GitHub），提供时抓取正文')
     body: str | None = Field(None, description='SKILL.md 正文（Markdown），未提供 source_url 时可直接填写')
+    is_public: bool = Field(False, description='是否公开：True 所有企业可见 / False 仅本企业与作者可见')

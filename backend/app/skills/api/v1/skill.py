@@ -3,18 +3,19 @@
 
 from typing import Annotated, List
 
+from app.enterprise.service.enterprise_service import get_current_enterprise_id
 from app.mcp.schema.skill import (
     GetSkillDetail,
     PublishSkillParam,
     SkillCategoryDetail,
     SkillDetail,
 )
-from app.skills.service.skill_service import skill_service
+from app.skills.service.skill_service import SkillError, skill_service
 from common.pagination import DependsPagination, PageData, paging_data
 from common.response.response_schema import ResponseModel, ResponseSchemaModel, response_base
 from common.security.jwt import DependsJwtAuth
 from database.db import CurrentSession, CurrentSessionTransaction
-from fastapi import APIRouter, Path, Query, Request
+from fastapi import APIRouter, Depends, Path, Query, Request
 
 router = APIRouter()
 
@@ -22,14 +23,22 @@ router = APIRouter()
 @router.get(
     '/',
     summary='搜索skill',
-    dependencies=[DependsPagination],
+    dependencies=[DependsJwtAuth, DependsPagination],
 )
 async def search_skill(
+    request: Request,
     db: CurrentSession,
+    viewer_enterprise_id: Annotated[int | None, Depends(get_current_enterprise_id)],
     keyword: str | None = Query(None, description='搜索词'),
     category_id: int | None = Query(None, description='分类id'),
 ) -> ResponseSchemaModel[PageData[SkillDetail]]:
-    skill_select = await skill_service.get_select(keyword=keyword, category_id=category_id)
+    """广场列表：公开 + 本人 + 本企业私有"""
+    skill_select = await skill_service.get_select(
+        keyword=keyword,
+        category_id=category_id,
+        viewer_user_id=request.user.id,
+        viewer_enterprise_id=viewer_enterprise_id,
+    )
     page_data = await paging_data(db, skill_select)
     return response_base.success(data=page_data)
 
@@ -61,6 +70,7 @@ async def publish_skill(request: Request, obj: PublishSkillParam) -> ResponseSch
         category_id=obj.category_id,
         source_url=obj.source_url,
         body=obj.body,
+        is_public=obj.is_public,
     )
     return response_base.success(data=skill)
 
@@ -78,26 +88,48 @@ async def delete_my_skill(
 
 @router.get('/{skill_id}/files', summary='获取 skill 附加文件列表', dependencies=[DependsJwtAuth])
 async def get_skill_files(
+    request: Request,
+    viewer_enterprise_id: Annotated[int | None, Depends(get_current_enterprise_id)],
     skill_id: Annotated[int, Path(description='skill_id')],
 ) -> ResponseSchemaModel[List[dict]]:
+    skill = await skill_service.get_skill_by_id_visible(
+        skill_id, viewer_user_id=request.user.id, viewer_enterprise_id=viewer_enterprise_id
+    )
+    if not skill:
+        raise SkillError(code=404, msg='Skill不存在')
     contents = await skill_service.get_skill_contents(skill_id)
     return response_base.success(data=[{'file_path': c.file_path, 'content': c.content} for c in contents])
 
 
 @router.post('/{skill_id}/install', summary='在线体验计数', dependencies=[DependsJwtAuth])
-async def track_skill_install(skill_id: Annotated[int, Path(description='skill_id')]) -> ResponseModel:
+async def track_skill_install(
+    request: Request,
+    viewer_enterprise_id: Annotated[int | None, Depends(get_current_enterprise_id)],
+    skill_id: Annotated[int, Path(description='skill_id')],
+) -> ResponseModel:
+    skill = await skill_service.get_skill_by_id_visible(
+        skill_id, viewer_user_id=request.user.id, viewer_enterprise_id=viewer_enterprise_id
+    )
+    if not skill:
+        raise SkillError(code=404, msg='Skill不存在')
     await skill_service.increment_install_count(skill_id)
     return response_base.success()
 
 
-@router.get('/{username}/{skill_name}', summary='skill detail')
+@router.get('/{username}/{skill_name}', summary='skill 详情（按可见性）', dependencies=[DependsJwtAuth])
 async def get_skill_detail(
+    request: Request,
+    viewer_enterprise_id: Annotated[int | None, Depends(get_current_enterprise_id)],
     username: Annotated[str, Path(description='username')],
     skill_name: Annotated[str, Path(description='skill_name')],
 ) -> ResponseSchemaModel[GetSkillDetail | None]:
-    result = await skill_service.get_public_skill_by_user(username=username, skill_name=skill_name)
+    """公开 skill 所有人可见；私有 skill 仅作者本人与其企业成员可见"""
+    result = await skill_service.get_skill_for_viewer(
+        username,
+        skill_name,
+        viewer_user_id=request.user.id,
+        viewer_enterprise_id=viewer_enterprise_id,
+    )
     if not result:
-        from common.exception import errors
-
-        raise errors.NotFoundError(msg='Skill不存在')
+        raise SkillError(code=404, msg='Skill不存在')
     return response_base.success(data=result)

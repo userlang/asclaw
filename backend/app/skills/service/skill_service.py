@@ -9,6 +9,7 @@ from loguru import logger
 from sqlalchemy import Select
 
 from app.admin.crud.crud_user import user_dao
+from app.enterprise.service.enterprise_service import get_user_enterprise
 from app.skills.crud.crud_skill import skill_dao
 from app.skills.crud.crud_skill_category import skill_category_dao
 from app.skills.crud.crud_skill_content import skill_content_dao
@@ -42,29 +43,59 @@ class SkillError(errors.BaseExceptionError):
 
 class SkillService:
     @staticmethod
-    async def get_select(*, keyword: str, category_id: int) -> Select:
-        return await skill_dao.get_list(keyword=keyword, category_id=category_id)
+    async def get_select(
+        *,
+        keyword: str,
+        category_id: int,
+        viewer_user_id: int,
+        viewer_enterprise_id: int | None,
+    ) -> Select:
+        return await skill_dao.get_list(
+            keyword=keyword,
+            category_id=category_id,
+            viewer_user_id=viewer_user_id,
+            viewer_enterprise_id=viewer_enterprise_id,
+        )
 
     @staticmethod
     async def get_my_skills(*, user_id: int) -> Select:
         return await skill_dao.get_my_skills(user_id=user_id)
 
     @staticmethod
-    async def get_skill_by_user(username: str, skill_name: str) -> AgentSkill | None:
+    async def get_skill_for_viewer(
+        username: str,
+        skill_name: str,
+        *,
+        viewer_user_id: int,
+        viewer_enterprise_id: int | None,
+    ) -> AgentSkill | None:
+        """按可见性取 skill（公开 / 本人 / 同企业），聊天注入与详情页共用"""
         async with async_db_session() as db:
             user = await user_dao.get_by_username(db, username)
             if not user:
-                raise errors.NotFoundError(msg='用户不存在')
-            return await skill_dao.get_skill_by_user(db, skill_name, user.id)
+                return None
+            return await skill_dao.get_skill_visible_to(
+                db, skill_name, user.id, viewer_user_id, viewer_enterprise_id
+            )
 
     @staticmethod
-    async def get_public_skill_by_user(username: str, skill_name: str) -> AgentSkill | None:
-        """获取用户已公开的 skill 详情（仅 is_public=1），用于详情页展示"""
+    async def get_skill_by_id_visible(
+        skill_id: int,
+        *,
+        viewer_user_id: int,
+        viewer_enterprise_id: int | None,
+    ) -> AgentSkill | None:
+        """按 id 取 skill 并校验可见性（附加文件/使用计数接口用），不可见返回 None"""
         async with async_db_session() as db:
-            user = await user_dao.get_by_username(db, username)
-            if not user:
-                raise errors.NotFoundError(msg='用户不存在')
-            return await skill_dao.get_public_skill_by_user(db, skill_name, user.id)
+            skill = await skill_dao.select_model(db, pk=skill_id)
+            if not skill:
+                return None
+            visible = (
+                skill.is_public
+                or skill.user_id == viewer_user_id
+                or (viewer_enterprise_id is not None and skill.enterprise_id == viewer_enterprise_id)
+            )
+            return skill if visible else None
 
     @staticmethod
     async def get_categories() -> list:
@@ -83,12 +114,19 @@ class SkillService:
         category_id: int | None = None,
         source_url: str | None = None,
         body: str | None = None,
+        is_public: bool = False,
     ) -> AgentSkill:
-        """发布 skill：解析来源（GitHub SKILL.md）或使用手填正文，落库并返回实例"""
+        """发布 skill：解析来源（GitHub SKILL.md）或使用手填正文，落库并返回实例
+
+        企业归属按作者关联的已审核企业落定（无企业则 enterprise_id 为空，
+        私有数据仅作者本人可见）。
+        """
         async with async_db_session.begin() as db:
             user = await user_dao.get(db, user_id)
             if not user:
                 raise SkillError(msg='用户不存在')
+
+            enterprise = await get_user_enterprise(db, user_id)
 
             existing = await skill_dao.get_by_name_and_user(db, name, user_id)
             if existing:
@@ -122,10 +160,11 @@ class SkillService:
                 path=path,
                 body=final_body,
                 source_url=source_url,
-                is_public=True,
+                is_public=is_public,
                 status=1,
                 category_id=category_id,
                 user_id=user_id,
+                enterprise_id=enterprise.id if enterprise else None,
             )
             db.add(skill)
             await db.flush()
@@ -139,8 +178,9 @@ class SkillService:
         # 事务提交后用新会话回查并预加载 user/category 关联：
         # 同一事务内刚 flush 的实例命中 identity map，selectinload 不会补关联，
         # 直接返回会导致响应序列化取 data.user.username 失败
+        # （作者本人必然可见，用不带可见性过滤的 get_skill_by_user，私有发布也能正常回显）
         async with async_db_session() as db:
-            return await skill_dao.get_public_skill_by_user(db, name, user_id)
+            return await skill_dao.get_skill_by_user(db, name, user_id)
 
     @staticmethod
     async def delete_my_skill(*, user_id: int, skill_id: int) -> int:

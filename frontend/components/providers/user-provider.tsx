@@ -103,6 +103,19 @@ export function UserProvider({
     localStorage.setItem("auth_token", token)
     setUser(profile)
     setIsJwtAuthenticated(true)
+    // 管理员登录后需立即拉取菜单路径，否则 Review 等 DB 驱动的导航要刷新页面后才出现
+    if (profile.is_staff || profile.is_superuser) {
+      getUserMenus()
+        .then((menus) => {
+          const paths = menus
+            .filter((m) => m.type === 0 && m.status === 1 && m.path)
+            .map((m) => m.path as string)
+          setUserMenuPaths(paths)
+        })
+        .catch(() => setUserMenuPaths([]))
+    } else {
+      setUserMenuPaths([])
+    }
   }
 
   const signOut = async () => {

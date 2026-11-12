@@ -270,10 +270,18 @@ export default function SearchPage() {
 
                   {/* Footer */}
                   <div className="mt-3 flex items-center justify-between">
-                    <Badge variant="outline" className="gap-1 text-xs">
-                      <Zap className="h-3.5 w-3.5" />
-                      Skill
-                    </Badge>
+                    <div className="flex items-center gap-1.5">
+                      <Badge variant="outline" className="gap-1 text-xs">
+                        <Zap className="h-3.5 w-3.5" />
+                        Skill
+                      </Badge>
+                      <Badge
+                        variant={skill.is_public ? "default" : "secondary"}
+                        className="text-xs"
+                      >
+                        {skill.is_public ? "公开" : "企业内"}
+                      </Badge>
+                    </div>
                     <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       {skill.favorite_count > 0 && (
                         <span className="flex items-center gap-1" title="收藏数">
