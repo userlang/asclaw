@@ -12,7 +12,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Tooltip,
   TooltipContent,
@@ -162,9 +161,10 @@ export function SearchPopover({
         <TooltipContent side="top">{tooltip}</TooltipContent>
       </Tooltip>
       <PopoverContent
-        className="w-[300px] rounded-xl p-0"
+        className="w-[320px] rounded-xl p-0"
         align="start"
         sideOffset={8}
+        collisionPadding={8}
       >
         {/* Search Input */}
         <div className="flex items-center gap-2 border-b px-3 py-2.5">
@@ -178,8 +178,9 @@ export function SearchPopover({
           />
         </div>
 
-        {/* Results */}
-        <ScrollArea className="max-h-[360px]">
+        {/* Results — 原生滚动容器：固定最大高度，超出显示滚动条，
+            避免 Radix ScrollArea 的 h-full 在 max-height 父级下失效导致内容溢出 */}
+        <div className="chat-search-scroll max-h-[320px] overflow-x-hidden overflow-y-auto">
           {loading && (
             <div className="text-muted-foreground py-8 text-center text-sm">
               搜索中...
@@ -227,11 +228,16 @@ export function SearchPopover({
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">{item.label}</span>
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span
+                        className="min-w-0 flex-1 truncate text-sm font-medium"
+                        title={item.label}
+                      >
+                        {item.label}
+                      </span>
                       <Badge
                         variant="secondary"
-                        className="text-muted-foreground px-1.5 py-0 text-[10px] font-normal"
+                        className="text-muted-foreground max-w-[100px] px-1.5 py-0 text-[10px] font-normal"
                       >
                         {item.owner}
                       </Badge>
@@ -252,7 +258,7 @@ export function SearchPopover({
                 </button>
               )
             })}
-        </ScrollArea>
+        </div>
       </PopoverContent>
     </Popover>
   )

@@ -287,6 +287,11 @@ export default function ServerDetailClient({
 
   const server = serverDetail
 
+  // 未编译/编译失败时 server_metadata 可能为 null，统一兜底避免渲染崩溃
+  const serverMeta = server.server_metadata ?? {}
+  const serverInfo = serverMeta.serverInfo ?? {}
+  const capabilities = serverMeta.capabilities ?? {}
+
   // Count the number of tools
   const toolsCount = server.tools?.length || 0
 
@@ -367,14 +372,18 @@ export default function ServerDetailClient({
                     <Zap className="h-3 w-3" />
                     {toolsCount} tools
                   </Badge>
-                  <Badge variant="outline" className="gap-1 text-xs">
-                    <Info className="h-3 w-3" />
-                    v{server.server_metadata.serverInfo.version}
-                  </Badge>
-                  <Badge variant="outline" className="gap-1 text-xs">
-                    <Globe className="h-3 w-3" />
-                    {server.server_metadata.protocolVersion}
-                  </Badge>
+                  {serverInfo.version && (
+                    <Badge variant="outline" className="gap-1 text-xs">
+                      <Info className="h-3 w-3" />
+                      v{serverInfo.version}
+                    </Badge>
+                  )}
+                  {serverMeta.protocolVersion && (
+                    <Badge variant="outline" className="gap-1 text-xs">
+                      <Globe className="h-3 w-3" />
+                      {serverMeta.protocolVersion}
+                    </Badge>
+                  )}
                   {server.server_type && (
                     <Badge
                       variant="secondary"
@@ -613,85 +622,90 @@ export default function ServerDetailClient({
                     Server Capabilities
                   </h3>
 
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="text-foreground font-medium">
-                        Protocol Version
-                      </h4>
-                      <p className="text-muted-foreground">
-                        {server.server_metadata.protocolVersion}
-                      </p>
-                    </div>
-
-                    <div>
-                      <h4 className="text-foreground font-medium">
-                        Server Info
-                      </h4>
-                      <div className="border-border mt-2 border-l-2 pl-4">
-                        <p>
-                          <span className="text-muted-foreground">Name:</span>{" "}
-                          {server.server_metadata.serverInfo.name}
-                        </p>
-                        <p>
-                          <span className="text-muted-foreground">
-                            Version:
-                          </span>{" "}
-                          {server.server_metadata.serverInfo.version}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="text-foreground font-medium">
-                        Supported Features
-                      </h4>
-                      <div className="border-border mt-2 space-y-2 border-l-2 pl-4">
-                        <div className="flex items-center">
-                          <div
-                            className={`mr-2 h-3 w-3 rounded-full ${server.server_metadata.capabilities.tools ? "bg-green-500" : "bg-gray-300"}`}
-                          ></div>
-                          <span>Tools</span>
-                        </div>
-                        <div className="flex items-center">
-                          <div
-                            className={`mr-2 h-3 w-3 rounded-full ${server.server_metadata.capabilities.resources ? "bg-green-500" : "bg-gray-300"}`}
-                          ></div>
-                          <span>Resources</span>
-                        </div>
-                        <div className="flex items-center">
-                          <div
-                            className={`mr-2 h-3 w-3 rounded-full ${server.server_metadata.capabilities.prompts ? "bg-green-500" : "bg-gray-300"}`}
-                          ></div>
-                          <span>Prompts</span>
-                        </div>
-                        <div className="flex items-center">
-                          <div
-                            className={`mr-2 h-3 w-3 rounded-full ${server.server_metadata.capabilities.logging ? "bg-green-500" : "bg-gray-300"}`}
-                          ></div>
-                          <span>Logging</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {Object.keys(
-                      server.server_metadata.capabilities.experimental || {}
-                    ).length > 0 && (
+                  {serverMeta.serverInfo ? (
+                    <div className="space-y-4">
                       <div>
                         <h4 className="text-foreground font-medium">
-                          Experimental Features
+                          Protocol Version
+                        </h4>
+                        <p className="text-muted-foreground">
+                          {serverMeta.protocolVersion || "—"}
+                        </p>
+                      </div>
+
+                      <div>
+                        <h4 className="text-foreground font-medium">
+                          Server Info
                         </h4>
                         <div className="border-border mt-2 border-l-2 pl-4">
-                          <pre className="bg-muted/50 overflow-x-auto rounded border p-2 text-sm">
-                            {JSON.stringify(
-                              server.server_metadata.capabilities.experimental,
-                              null,
-                              2
-                            )}
-                          </pre>
+                          <p>
+                            <span className="text-muted-foreground">Name:</span>{" "}
+                            {serverInfo.name || "—"}
+                          </p>
+                          <p>
+                            <span className="text-muted-foreground">
+                              Version:
+                            </span>{" "}
+                            {serverInfo.version || "—"}
+                          </p>
                         </div>
                       </div>
-                    )}
-                  </div>
+
+                      <div>
+                        <h4 className="text-foreground font-medium">
+                          Supported Features
+                        </h4>
+                        <div className="border-border mt-2 space-y-2 border-l-2 pl-4">
+                          <div className="flex items-center">
+                            <div
+                              className={`mr-2 h-3 w-3 rounded-full ${capabilities.tools ? "bg-green-500" : "bg-gray-300"}`}
+                            ></div>
+                            <span>Tools</span>
+                          </div>
+                          <div className="flex items-center">
+                            <div
+                              className={`mr-2 h-3 w-3 rounded-full ${capabilities.resources ? "bg-green-500" : "bg-gray-300"}`}
+                            ></div>
+                            <span>Resources</span>
+                          </div>
+                          <div className="flex items-center">
+                            <div
+                              className={`mr-2 h-3 w-3 rounded-full ${capabilities.prompts ? "bg-green-500" : "bg-gray-300"}`}
+                            ></div>
+                            <span>Prompts</span>
+                          </div>
+                          <div className="flex items-center">
+                            <div
+                              className={`mr-2 h-3 w-3 rounded-full ${capabilities.logging ? "bg-green-500" : "bg-gray-300"}`}
+                            ></div>
+                            <span>Logging</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {Object.keys(capabilities.experimental || {}).length >
+                        0 && (
+                        <div>
+                          <h4 className="text-foreground font-medium">
+                            Experimental Features
+                          </h4>
+                          <div className="border-border mt-2 border-l-2 pl-4">
+                            <pre className="bg-muted/50 overflow-x-auto rounded border p-2 text-sm">
+                              {JSON.stringify(
+                                capabilities.experimental,
+                                null,
+                                2
+                              )}
+                            </pre>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-muted-foreground py-8 text-center">
+                      该服务器尚未编译，暂无能力信息。
+                    </div>
+                  )}
                 </div>
               </TabsContent>
             </Tabs>
