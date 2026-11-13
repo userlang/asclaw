@@ -13,15 +13,13 @@ from app.admin.model import (
     user_role,
 )
 from app.admin.schema.user import (
-    AddOAuth2UserParam,
     AddUserParam,
     AddUserRoleParam,
     UpdateUserParam,
 )
-from sqlalchemy import Select, delete, func, insert, select
+from sqlalchemy import Select, delete, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy_crud_plus import CRUDPlus
-from utils.dynamic_import import import_module_cached
 from utils.password_security import get_hash_password
 from utils.serializers import select_join_serialize
 from utils.timezone import timezone
@@ -138,34 +136,6 @@ class CRUDUser(CRUDPlus[User]):
             user_role_data = [AddUserRoleParam(user_id=new_user.id, role_id=role.id).model_dump() for role in roles]
             user_role_stmt = insert(user_role)
             await db.execute(user_role_stmt, user_role_data)
-
-    async def add_by_oauth2(self, db: AsyncSession, obj: AddOAuth2UserParam) -> None:
-        """
-        通过 OAuth2 添加用户
-
-        :param db: 数据库会话
-        :param obj: 注册用户参数
-        :return:
-        """
-        # 检查是否是第一个用户，第一个用户设为超级管理员
-        user_count_result = await db.execute(select(func.count()).select_from(User))
-        is_first_user = user_count_result.scalar() == 0
-
-        dict_obj = obj.model_dump()
-        dict_obj.update({'is_staff': is_first_user, 'is_superuser': is_first_user, 'salt': None})
-        new_user = self.model(**dict_obj)
-        db.add(new_user)
-        await db.flush()
-
-        role_stmt = select(Role)
-        result = await db.execute(role_stmt)
-        role = result.scalars().first()  # 默认绑定第一个角色
-
-        if role:
-            user_role_stmt = insert(user_role).values(
-                AddUserRoleParam(user_id=new_user.id, role_id=role.id).model_dump()
-            )
-            await db.execute(user_role_stmt)
 
     async def update(self, db: AsyncSession, user_id: int, obj: UpdateUserParam) -> int:
         """
@@ -302,14 +272,6 @@ class CRUDUser(CRUDPlus[User]):
         """
         user_role_stmt = delete(user_role).where(user_role.c.user_id == user_id)
         await db.execute(user_role_stmt)
-
-        try:
-            user_social = import_module_cached('backend.plugin.oauth2.crud.crud_user_social')
-            user_social_dao = user_social.user_social_dao
-        except (ImportError, AttributeError):
-            pass
-        else:
-            await user_social_dao.delete_by_user_id(db, user_id)
 
         return await self.delete_model(db, user_id)
 

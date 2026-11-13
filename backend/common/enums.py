@@ -92,19 +92,6 @@ class StatusType(IntEnum):
     enable = 1
 
 
-class UserSocialType(StrEnum):
-    """用户社交类型"""
-
-    google = 'Google'
-
-
-class UserSocialAuthType(StrEnum):
-    """用户社交授权类型"""
-
-    login = 'login'
-    binding = 'binding'
-
-
 class FileType(StrEnum):
     """文件类型"""
 
