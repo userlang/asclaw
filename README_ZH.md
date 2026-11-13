@@ -128,8 +128,25 @@ docker compose -f docker-compose.dev.yml up -d
 ```
 
 **首次**启动（空数据卷）时，MySQL 会按文件名顺序自动执行
-`docker/sql/mysql/init/*.sql` —— 创建 `asclaw` 与 `asclaw_chat` 两个库，并写入后台
-`sys_menu` 菜单种子。无需手动执行 SQL；后续启动不会重复执行。
+`docker/sql/mysql/init/` 下的两个脚本：
+
+- `01_schema.sql` —— 创建 `asclaw` 与 `asclaw_chat` 两个库及**全部表结构**
+  （幂等；同时把 `alembic_version` 标记为当前迁移最新版）
+- `02_data.sql` —— 初始化数据：后台 `sys_menu` 菜单、默认管理员账号、
+  业务数据（17 个 MCP Server、2 个 Agent、2 个 Skill）
+
+无需手动执行 SQL；后续启动不会重复执行。
+
+> ⚠️ **注意**：这两个脚本只在数据卷为**空**时自动执行。如果你重新走一遍快速开始
+> （只删容器/镜像），旧数据卷仍在，MySQL 会**静默跳过**初始化脚本，导致库里没有任何
+> 数据。要从头再来，请删除数据卷后重启（会清空库内全部数据）：
+>
+> ```shell
+> docker compose -f docker-compose.dev.yml down -v   # 删除容器 + 数据卷
+> docker compose -f docker-compose.dev.yml up -d     # 空卷启动，自动执行初始化脚本
+> ```
+>
+> 不想清数据？保留数据卷，按下方「已有数据卷」一节手动执行两个脚本即可。
 
 ### 2. 后端
 
@@ -137,14 +154,31 @@ docker compose -f docker-compose.dev.yml up -d
 cd backend
 uv sync && source .venv/bin/activate
 cp .env.example .env      # 按需修改 DATABASE_PASSWORD / DASHSCOPE_API_KEY
-alembic upgrade head      # 应用全部迁移（含增量表结构变更）
 asclaw run --port 8081    # API :8081（Swagger /docs）
 ```
+
+数据库初始化已在步骤 1 完成（全新数据卷）。如果你用的是**已有数据卷**
+（例如之前跑过旧版快速开始），手动执行一次这两个脚本即可（幂等，不会清数据）：
+
+```shell
+docker exec -i mysql mysql -uroot -p'<DATABASE_PASSWORD>' --default-character-set=utf8mb4 \
+  < docker/sql/mysql/init/01_schema.sql
+docker exec -i mysql mysql -uroot -p'<DATABASE_PASSWORD>' --default-character-set=utf8mb4 \
+  < docker/sql/mysql/init/02_data.sql
+```
+
+> 默认管理员账号：**admin / admin**，首次登录后请尽快修改密码。
 
 ### 3. Celery worker + beat（另开终端；MCP 编译/部署任务必需）
 
 ```shell
+终端1
+cd backend
+source .venv/bin/activate
 asclaw celery worker      # 执行编译/部署任务
+终端2
+cd backend
+source .venv/bin/activate
 asclaw celery beat        # 定时：每 30 秒同步部署日志状态
 ```
 
@@ -169,11 +203,14 @@ pnpm dev -p 3001            # :3001
 
 ### 哪些脚本会自动执行
 
-- **Docker 初始化 SQL** —— `docker/sql/mysql/init/*.sql` 在 MySQL 首次启动（空卷）时自动执行：建库 + `sys_menu` 种子。
-- **增量迁移** —— `alembic upgrade head` 自动应用 `backend/alembic/versions/` 下的全部迁移脚本（每一条都是一次增量表结构变更，例如新增 `enterprise_id` 列），无需逐条手跑。
+- **Docker 初始化 SQL** —— `docker/sql/mysql/init/01_schema.sql` + `02_data.sql` 在
+  MySQL 首次启动（空卷）时自动执行：前者建库建表，后者写入菜单、管理员账号与
+  示例数据；两个脚本均幂等（`IF NOT EXISTS` / `INSERT IGNORE`）。
 - **缺表自动补建** —— 后端启动时 `create_tables` 自动补建缺失的表（只建不改）。
 
-> `backend/sql/*.sql` 是针对「已有数据的库且 alembic 历史不同步」的幂等手动 DDL，全新安装不需要执行。
+> 快速开始不再执行 alembic —— `01_schema.sql` 已把 `alembic_version` 标记为当前
+> 迁移最新版。alembic 保留给日常增量开发使用
+> （`alembic revision --autogenerate` + `alembic upgrade head`）。
 
 ### 一键启动脚本（可选）
 

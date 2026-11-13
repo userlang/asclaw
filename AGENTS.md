@@ -84,11 +84,15 @@ cd backend
 uv sync
 source .venv/bin/activate
 cp .env.example .env
-alembic upgrade head
 asclaw run                     # API server
 asclaw celery worker            # Celery worker (separate terminal)
 asclaw celery beat              # Celery beat scheduler (separate terminal)
 ```
+
+Database setup: `docker/sql/mysql/init/01_schema.sql` + `02_data.sql` create the databases,
+tables and seed data (auto-run on first MySQL boot with an empty volume; see README quick
+start for manual re-run on an existing volume). Alembic is only for **incremental** schema
+changes — run `alembic upgrade head` after creating a revision, not as a setup step.
 
 ## Frontend Conventions
 
