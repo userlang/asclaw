@@ -508,7 +508,6 @@ dependencies = [
     { name = "fast-agent-mcp" },
     { name = "fast-captcha" },
     { name = "fastapi", extra = ["standard-no-fastapi-cloud-cli"] },
-    { name = "fastapi-oauth20" },
     { name = "fastapi-pagination" },
     { name = "fastmcp" },
     { name = "flower" },
@@ -581,7 +580,6 @@ requires-dist = [
     { name = "fast-agent-mcp", specifier = ">=0.2.25" },
     { name = "fast-captcha", specifier = ">=0.3.2" },
     { name = "fastapi", extras = ["standard-no-fastapi-cloud-cli"], specifier = "==0.129.0" },
-    { name = "fastapi-oauth20", specifier = ">=0.0.3" },
     { name = "fastapi-pagination", specifier = ">=0.15.10" },
     { name = "fastmcp", specifier = ">=2.12.3,<3.0.0" },
     { name = "flower", specifier = ">=2.0.1" },
@@ -1596,18 +1594,6 @@ wheels = [
 [package.optional-dependencies]
 standard-no-fastapi-cloud-cli = [
     { name = "uvicorn", extra = ["standard"] },
-]
-
-[[package]]
-name = "fastapi-oauth20"
-version = "0.0.3"
-source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
-dependencies = [
-    { name = "httpx" },
-]
-sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/f6/e0/d020c615d824a56dbd7d5f8cc41b406cc23362099dfe7ba2759294a70712/fastapi_oauth20-0.0.3.tar.gz", hash = "sha256:a56c7e455c322e3e8ce06d8d536af2bdd5a72f8ede836fd5c3b823b704a612f9", size = 2283268, upload-time = "2026-01-27T07:28:27.325Z" }
-wheels = [
-    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/18/6f/94301d0e43744813a870e350fbff1640063fa1120c7c2dabb7a8ddb8ef2c/fastapi_oauth20-0.0.3-py3-none-any.whl", hash = "sha256:aa2561044684c742d4eafdca5751beff04a35d80e9e13470cff57237129c054a", size = 14230, upload-time = "2026-01-27T07:28:24.319Z" },
 ]
 
 [[package]]

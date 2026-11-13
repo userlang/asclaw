@@ -7,7 +7,6 @@ ASCLaw Agent
 authors = [
     { name = "langjunnan" },
 ]
-readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "aiofiles>=24.1.0",
@@ -63,7 +62,6 @@ dependencies = [
     "pyrate-limiter>=4.0.2",
     "cachebox>=5.2.2",
     "aiosmtplib>=5.1.0",
-    "fastapi-oauth20>=0.0.3",
     "prometheus-client>=0.21.1",
 ]
 
@@ -97,11 +95,6 @@ url = "https://mirrors.aliyun.com/pypi/simple"
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
-
-[tool.poetry.group.dev.dependencies]
-pre-commit = "^4.2.0"
-pytest = "^8.3.5"
-pytest-asyncio = "^0.26.0"
 
 [tool.hatch.build.targets.wheel]
 packages = ["."]
