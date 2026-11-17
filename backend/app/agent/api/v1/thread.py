@@ -4,6 +4,7 @@
 import asyncio
 
 import copy
+import re
 from collections import defaultdict
 from datetime import datetime
 
@@ -157,8 +158,19 @@ async def chat_endpoint(
             logger.warning('Failed to load agent config {}: {}', agent_name, e)
 
     # 加载选中的 MCP 配置（在生成器外提前加载，避免在 async generator 中做 DB 操作）
-    mcp_configs: list[tuple[str, dict, str]] = []  # (name, config, transport)
+    # 元工具（reset_equipped_tools）按组装备/卸载，每个 MCP server 一个组：
+    #   group tuple = (name, config, transport, group_name, group_description, group_notes)
+    #   group_description 来自编译后合成的 server_metadata.tool_group_description
+    #   group_notes 来自 server_metadata.instructions（MCP 协议里 server 给模型的使用须知）
+    def _make_group_name(owner: str, server_name: str) -> str:
+        # 组名会作为 reset_equipped_tools 的 kwargs/字段名，必须是合法标识符；
+        # owner/name 含 '/' 等非法字符，统一替换为下划线
+        raw = f'mcp_{owner}_{server_name}'
+        return re.sub(r'[^0-9a-zA-Z_]', '_', raw)
+
+    mcp_configs: list[tuple] = []  # (name, config, transport, group_name, group_desc, group_notes)
     if mcps:
+        used_group_names: set[str] = set()
         for item in mcps.split(','):
             item = item.strip()
             if '/' not in item:
@@ -173,17 +185,29 @@ async def chat_endpoint(
                 if not is_owner and not mcp_server.is_public:
                     logger.warning('MCP {}/{} not public, skip for user {}', owner, server_name, user_id)
                     continue
+                # 组信息：group_name 作元工具字段名；description 取编译后合成的
+                # tool_group_description（缺则退化 server.description，仍空则仅靠组名）；
+                # notes 取 server_metadata.instructions（server 给模型的使用须知）
+                group_name = _make_group_name(owner, server_name)
+                while group_name in used_group_names:
+                    group_name += '_'
+                used_group_names.add(group_name)
+                meta = mcp_server.server_metadata or {}
+                group_desc = meta.get('tool_group_description') or mcp_server.description or ''
+                group_notes = meta.get('instructions') or None
+
                 # 凭证：非 owner 一律先剥离配置里的鉴权材料（header + URL 敏感参数），
                 # 需要鉴权的 MCP 必须叠加调用者自己的凭证（个人优先、企业共享兜底），
                 # 严禁沿用 owner 的 token
                 server_needs_auth = detect_needs_auth(mcp_server.server_config, mcp_server.transport)
                 for mcp_name, mcp_cfg in mcp_server.server_config.get('mcpServers', {}).items():
+                    entry = (mcp_name, mcp_cfg, mcp_server.transport, group_name, group_desc, group_notes)
                     if is_owner:
-                        mcp_configs.append((mcp_name, mcp_cfg, mcp_server.transport))
+                        mcp_configs.append(entry)
                         continue
                     if not server_needs_auth:
                         # 无鉴权材料，配置本身可安全复用
-                        mcp_configs.append((mcp_name, copy.deepcopy(mcp_cfg), mcp_server.transport))
+                        mcp_configs.append(entry)
                         continue
                     user_credential, cred_source = await mcp_server_service.resolve_user_credential(
                         db_session, request.user.id, mcp_server.id
@@ -199,7 +223,7 @@ async def chat_endpoint(
                     logger.info('MCP {}/{} uses {} credential', owner, server_name, cred_source)
                     sanitized_cfg = mcp_server_service.sanitize_server_config(copy.deepcopy(mcp_cfg))
                     merged_cfg = mcp_server_service.apply_credential_to_config(sanitized_cfg, user_credential)
-                    mcp_configs.append((mcp_name, merged_cfg, mcp_server.transport))
+                    mcp_configs.append((mcp_name, merged_cfg, mcp_server.transport, group_name, group_desc, group_notes))
 
             except Exception as e:
                 logger.warning('Failed to load MCP {}: {}', item, e)
@@ -261,7 +285,24 @@ async def chat_endpoint(
         mcp_clients: list[HttpStatefulClient | StdIOStatefulClient] = []
 
         try:
-            for name, config, transport in mcp_configs:
+            # 每个 MCP server 对应一个工具组，组内工具默认未激活，
+            # 模型需用元工具 reset_equipped_tools 装备后才能调用。
+            # 同一 server 的 mcpServers 可能有多条 config 共用一个组名，建组只建一次。
+            created_groups: set[str] = set()
+
+            async def _ensure_group(gname: str, gdesc: str, gnotes: str | None) -> None:
+                if gname in created_groups:
+                    return
+                toolkit.create_tool_group(
+                    group_name=gname,
+                    description=gdesc,
+                    active=False,
+                    notes=gnotes,
+                )
+                created_groups.add(gname)
+
+            for name, config, transport, group_name, group_desc, group_notes in mcp_configs:
+                await _ensure_group(group_name, group_desc, group_notes)
                 if transport == 'stdio':
                     stdio_config = {
                         'command': config.get('command'),
@@ -274,7 +315,7 @@ async def chat_endpoint(
                         **stdio_config,
                     )
                     await stdio_client.connect()
-                    await toolkit.register_mcp_client(stdio_client)
+                    await toolkit.register_mcp_client(stdio_client, group_name=group_name)
                     mcp_clients.append(stdio_client)
                 elif transport == 'sse':
                     sse_config = {
@@ -290,7 +331,7 @@ async def chat_endpoint(
                     )
 
                     await stateful_client.connect()
-                    await toolkit.register_mcp_client(stateful_client)
+                    await toolkit.register_mcp_client(stateful_client, group_name=group_name)
                     mcp_clients.append(stateful_client)
                 elif transport == 'streamable_http':
                     http_config = {
@@ -306,7 +347,7 @@ async def chat_endpoint(
                     )
 
                     await stateful_client.connect()
-                    await toolkit.register_mcp_client(stateful_client)
+                    await toolkit.register_mcp_client(stateful_client, group_name=group_name)
                     mcp_clients.append(stateful_client)
 
             agent = ReActAgent(
