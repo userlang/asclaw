@@ -235,6 +235,6 @@ pnpm dev -p 3001            # :3001
 
 **AsClaw** — *Build Agents that think and act*
 
-⭐ 觉得不错就点个 Star 吧
+⭐ 觉得不错就点个 Star 吧！
 
 </div>
